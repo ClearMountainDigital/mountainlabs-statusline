@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 150" font-family="ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- terminal window -->
+  <rect x="10" y="10" width="880" height="130" rx="12" fill="#1c0f08" stroke="#3a2418" stroke-width="1" filter="url(#shadow)"/>
+
+  <!-- title bar -->
+  <circle cx="36" cy="36" r="6" fill="#ad0000"/>
+  <circle cx="56" cy="36" r="6" fill="#c08a4e"/>
+  <circle cx="76" cy="36" r="6" fill="#6fa36b"/>
+  <text x="450" y="41" text-anchor="middle" font-size="13" fill="#78766f"><tspan fill="#8c4820">▲</tspan> claude code — mountainlabs statusline</text>
+
+  <!-- ============ LINE 1 · identity (powerline) ============ -->
+  <!-- segment fills -->
+  <rect x="34"  y="66" width="184" height="30" fill="#495b6c"/>
+  <rect x="218" y="66" width="152" height="30" fill="#716a56"/>
+  <rect x="370" y="66" width="108" height="30" fill="#3f5147"/>
+  <!-- powerline chevrons (each in its own segment's color, over what follows) -->
+  <polygon points="218,66 232,81 218,96" fill="#495b6c"/>
+  <polygon points="370,66 384,81 370,96" fill="#716a56"/>
+  <polygon points="478,66 492,81 478,96" fill="#3f5147"/>
+  <!-- segment text -->
+  <text x="46"  y="86" font-size="15" fill="#f2f2f2">Opus 4.8 <tspan fill="#96b4cd">∞</tspan>·high <tspan fill="#8fbe7e">▲</tspan></text>
+  <text x="238" y="86" font-size="15" fill="#f2f2f2">makersmanager</text>
+  <text x="392" y="86" font-size="15" fill="#f2f2f2">main <tspan fill="#c98e47">↓6</tspan></text>
+
+  <!-- ============ LINE 2 · telemetry ============ -->
+  <text x="34" y="124" font-size="14.5" letter-spacing="0.5">
+    <tspan fill="#78766f">ctx </tspan><tspan fill="#8fbe7e">███</tspan><tspan fill="#40403c">░░░░░░░</tspan><tspan fill="#8fbe7e"> 68k</tspan><tspan fill="#78766f">/1.0M</tspan><tspan fill="#78766f">   5h </tspan><tspan fill="#40403c">░░░░</tspan><tspan fill="#8fbe7e"> 6%</tspan><tspan fill="#78766f">·⟳2h13m</tspan><tspan fill="#78766f">   wk </tspan><tspan fill="#40403c">░░░░</tspan><tspan fill="#8fbe7e"> 1%</tspan><tspan fill="#78766f">·⟳3d11h</tspan><tspan fill="#8fbe7e">   ~$2.62</tspan><tspan fill="#78766f"> ·$0.63/h</tspan><tspan fill="#8fbe7e">   +5</tspan><tspan fill="#78766f">   4m 9s</tspan>
+  </text>
+</svg>

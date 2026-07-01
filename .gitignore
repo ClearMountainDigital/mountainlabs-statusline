@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# editor cruft
+*.swp
+*~
+.idea/
+.vscode/
+
+# local backups the installer writes
+*.bak
+*.bak-statusline

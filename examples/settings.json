@@ -1,0 +1,8 @@
+{
+  "//": "Add this statusLine block to ~/.claude/settings.json (user-level) or a project's .claude/settings.json. Project settings override user settings — see the README note on precedence.",
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh",
+    "padding": 0
+  }
+}
