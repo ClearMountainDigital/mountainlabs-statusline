@@ -229,12 +229,25 @@ if [ -n "$DIR" ] && git -C "$DIR" rev-parse --git-dir >/dev/null 2>&1; then
     [ -n "$_gd" ] && [ "$_gd" != "$_cd" ] && WT="$(basename "$(dirname "$_cd")")"
   fi
   [ -n "$WT" ] && git_txt="${git_txt} ${FG_DIM}${WTG} ${WT}${FG_CREAM}"
-  ab="$(git -C "$DIR" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)"
-  behind="$(printf '%s' "$ab" | awk '{print $1+0}')"
-  ahead="$(printf '%s' "$ab" | awk '{print $2+0}')"
-  staged="$(git -C "$DIR" diff --cached --numstat 2>/dev/null | grep -c '')"
-  modified="$(git -C "$DIR" diff --numstat 2>/dev/null | grep -c '')"
-  untracked="$(git -C "$DIR" ls-files --others --exclude-standard 2>/dev/null | grep -c '')"
+  # One `git status --porcelain=v2 --branch` replaces five git spawns (rev-list
+  # for ahead/behind, diff --cached, diff, ls-files). One awk pass reads the
+  # counts from its output:
+  #   "# branch.ab +A -B"  -> A ahead, B behind (line is absent with no upstream,
+  #                           so ahead/behind stay 0 — same as @{u} failing before)
+  #   "1"/"2" <XY> ...     -> X = index (staged) status, Y = worktree (modified)
+  #                           status; each non-'.' char counts that file. A file
+  #                           that's both staged and re-modified (e.g. "MM") counts
+  #                           in both, matching the old diff --cached + diff pair.
+  #   "? ..."              -> an untracked file
+  # --untracked-files=all lists every untracked file individually; without it,
+  # git status collapses an untracked directory to ONE "?" entry, which would
+  # undercount vs the old `ls-files --others` (that listed each file).
+  read -r ahead behind staged modified untracked < <(
+    git -C "$DIR" status --porcelain=v2 --branch --untracked-files=all 2>/dev/null | awk '
+      $1=="#" && $2=="branch.ab" { ahead=$3+0; behind=-($4+0) }
+      $1=="1" || $1=="2" { if(substr($2,1,1)!=".")s++; if(substr($2,2,1)!=".")m++ }
+      $1=="?" { u++ }
+      END { printf "%d %d %d %d %d", ahead+0, behind+0, s+0, m+0, u+0 }')
   [ "${ahead:-0}" -gt 0 ]     && git_txt="${git_txt} ${FG_SKY}↑${ahead}${FG_CREAM}"
   [ "${behind:-0}" -gt 0 ]    && git_txt="${git_txt} ${FG_AMBER}↓${behind}${FG_CREAM}"
   [ "${staged:-0}" -gt 0 ]    && git_txt="${git_txt} ${FG_SAGE}+${staged}${FG_CREAM}"

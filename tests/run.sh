@@ -97,6 +97,35 @@ mk_repo_worktree(){
   echo "$wt"
 }
 
+mk_repo_rename(){
+  # a STAGED rename — porcelain v2 emits a type "2" (R.) entry, which no other
+  # fixture produces; guards the v2 parser added in #0006. Counts as staged=1.
+  local d="$TMPROOT/git-rename/my-project"; mkdir -p "$d"
+  ginit "$d"
+  printf 'contents\n' > "$d/oldname.txt"
+  git -C "$d" add -A >/dev/null 2>&1
+  git -C "$d" commit -qm base >/dev/null 2>&1
+  git -C "$d" branch -M main >/dev/null 2>&1
+  git -C "$d" mv oldname.txt newname.txt >/dev/null 2>&1
+  echo "$d"
+}
+
+mk_repo_untracked_dir(){
+  # a clean repo plus an untracked DIRECTORY holding 3 files. Guards #0006's use
+  # of --untracked-files=all: git status would otherwise collapse the dir to one
+  # "?" entry (=> "…1"), while the old `ls-files --others` counted each file
+  # (=> "…3"). The expected render is "…3", so this fixture fails if the flag is dropped.
+  local d="$TMPROOT/git-untracked-dir/my-project"; mkdir -p "$d"
+  ginit "$d"
+  printf 'base\n' > "$d/README.md"
+  git -C "$d" add -A >/dev/null 2>&1
+  git -C "$d" commit -qm base >/dev/null 2>&1
+  git -C "$d" branch -M main >/dev/null 2>&1
+  mkdir -p "$d/notes"
+  printf 'a\n' > "$d/notes/a.txt"; printf 'b\n' > "$d/notes/b.txt"; printf 'c\n' > "$d/notes/c.txt"
+  echo "$d"
+}
+
 mk_repo_dirty(){
   local root="$TMPROOT/git-dirty"
   local bare="$root/origin.git" work="$root/my-project" rc="$root/remoteclone"
@@ -146,6 +175,8 @@ build_payload(){  # $1 fixture name -> final JSON on stdout
     git-dirty)     ws="$(mk_repo_dirty)" ;;
     git-detached)  ws="$(mk_repo_detached)" ;;
     git-worktree)  ws="$(mk_repo_worktree)" ;;
+    git-rename)    ws="$(mk_repo_rename)" ;;
+    git-untracked-dir) ws="$(mk_repo_untracked_dir)" ;;
     agent-spend)
         ws="$TMPROOT/agent-spend"; mkdir -p "$ws"
         tp="$(mk_agent_transcript)"

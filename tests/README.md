@@ -78,3 +78,5 @@ default on essentially every git build.
 | `git-dirty` | `↑1 ↓2 +1 ✎1 …1` (ahead/behind + staged/modified/untracked) |
 | `git-detached` | Detached HEAD → short SHA |
 | `git-worktree` | Linked worktree → fork marker + parent repo name |
+| `git-rename` | Staged rename → porcelain-v2 type `2` (`R.`) entry → `+1` |
+| `git-untracked-dir` | Untracked directory of 3 files → `…3` (guards `--untracked-files=all`) |
