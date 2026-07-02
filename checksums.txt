@@ -1,1 +1,1 @@
-14a5c1ec90e1ec968b9f2bcbee67993ce9112abef4ad91fed361cf4e9dab26bf  statusline.sh
+6e09c60053d53a853a0732173a05f90ae2b5835f698b901fcffaf6ac8b7b27e9  statusline.sh
