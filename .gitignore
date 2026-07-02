@@ -13,3 +13,6 @@
 
 # Claude Code project-level working folders (settings, worktrees, local state)
 .claude/
+
+# local-only project guide — never pushed to the remote
+CLAUDE.md
