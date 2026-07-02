@@ -162,12 +162,12 @@ caps=""
 if [ -n "$FIVE_H" ]; then
   c="$(pct_color "$FIVE_H")"
   caps+="   $(fg "$DIM")5h$(rs) $(bar $(( (${FIVE_H%.*} * 4 + 50) / 100 )) 4 "$c") $(fg "$c")${FIVE_H%.*}%$(rs)"
-  [ -n "$FIVE_RESET" ] && caps+="$(fg "$DIM")·⟳$(until_reset "$FIVE_RESET")$(rs)"
+  [ -n "$FIVE_RESET" ] && caps+="$(fg "$DIM") ($(until_reset "$FIVE_RESET"))$(rs)"
 fi
 if [ -n "$SEVEN_D" ]; then
   c="$(pct_color "$SEVEN_D")"
   caps+="   $(fg "$DIM")wk$(rs) $(bar $(( (${SEVEN_D%.*} * 4 + 50) / 100 )) 4 "$c") $(fg "$c")${SEVEN_D%.*}%$(rs)"
-  [ -n "$SEVEN_RESET" ] && caps+="$(fg "$DIM")·⟳$(until_reset "$SEVEN_RESET")$(rs)"
+  [ -n "$SEVEN_RESET" ] && caps+="$(fg "$DIM") ($(until_reset "$SEVEN_RESET"))$(rs)"
 fi
 
 cost="   $(fg "$(cost_col "$COST")")$(printf '~$%.2f' "$COST")$(rs)"

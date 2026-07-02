@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" font-family="ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <rect x="10" y="10" width="880" height="280" rx="12" fill="#1c0f08" stroke="#3a2418" stroke-width="1" filter="url(#shadow)"/>
+
+  <!-- title bar -->
+  <circle cx="36" cy="36" r="6" fill="#ad0000"/>
+  <circle cx="56" cy="36" r="6" fill="#c08a4e"/>
+  <circle cx="76" cy="36" r="6" fill="#6fa36b"/>
+  <text x="450" y="41" text-anchor="middle" font-size="13" fill="#78766f"><tspan fill="#8c4820">▲</tspan> mountainlabs ghostty theme</text>
+
+  <!-- base -->
+  <rect x="40"  y="60" width="250" height="30" rx="5" fill="#26140a" stroke="#3a2418"/>
+  <text x="52"  y="80" font-size="13" fill="#f2f2f2">background  #26140A</text>
+  <rect x="310" y="60" width="250" height="30" rx="5" fill="#f2f2f2"/>
+  <text x="322" y="80" font-size="13" fill="#26140a">foreground  #F2F2F2</text>
+  <rect x="580" y="60" width="270" height="30" rx="5" fill="#8c4820"/>
+  <text x="592" y="80" font-size="13" fill="#f2f2f2">cursor  #8C4820</text>
+
+  <!-- palette caption -->
+  <text x="40" y="120" font-size="12" fill="#78766f">16-color palette — top row normal, bottom row bright</text>
+
+  <!-- column names -->
+  <g font-size="11" fill="#c9c4bc" text-anchor="middle">
+    <text x="84"  y="140">black</text>
+    <text x="186" y="140">red</text>
+    <text x="288" y="140">green</text>
+    <text x="390" y="140">yellow</text>
+    <text x="492" y="140">blue</text>
+    <text x="594" y="140">magenta</text>
+    <text x="696" y="140">cyan</text>
+    <text x="798" y="140">white</text>
+  </g>
+
+  <!-- normal row -->
+  <g>
+    <rect x="40"  y="148" width="88" height="34" rx="5" fill="#2b1810"/>
+    <rect x="142" y="148" width="88" height="34" rx="5" fill="#ad0000"/>
+    <rect x="244" y="148" width="88" height="34" rx="5" fill="#6fa36b"/>
+    <rect x="346" y="148" width="88" height="34" rx="5" fill="#c08a4e"/>
+    <rect x="448" y="148" width="88" height="34" rx="5" fill="#6b84a0"/>
+    <rect x="550" y="148" width="88" height="34" rx="5" fill="#9e7182"/>
+    <rect x="652" y="148" width="88" height="34" rx="5" fill="#6ba39b"/>
+    <rect x="754" y="148" width="88" height="34" rx="5" fill="#c9c4bc"/>
+  </g>
+  <g font-size="10" fill="#8f8a82" text-anchor="middle">
+    <text x="84"  y="197">2B1810</text>
+    <text x="186" y="197">AD0000</text>
+    <text x="288" y="197">6FA36B</text>
+    <text x="390" y="197">C08A4E</text>
+    <text x="492" y="197">6B84A0</text>
+    <text x="594" y="197">9E7182</text>
+    <text x="696" y="197">6BA39B</text>
+    <text x="798" y="197">C9C4BC</text>
+  </g>
+
+  <!-- bright row -->
+  <g>
+    <rect x="40"  y="210" width="88" height="34" rx="5" fill="#7c7768"/>
+    <rect x="142" y="210" width="88" height="34" rx="5" fill="#d93a2b"/>
+    <rect x="244" y="210" width="88" height="34" rx="5" fill="#8fbe7e"/>
+    <rect x="346" y="210" width="88" height="34" rx="5" fill="#e0a860"/>
+    <rect x="448" y="210" width="88" height="34" rx="5" fill="#8aa6c4"/>
+    <rect x="550" y="210" width="88" height="34" rx="5" fill="#c08fa0"/>
+    <rect x="652" y="210" width="88" height="34" rx="5" fill="#8fc4bc"/>
+    <rect x="754" y="210" width="88" height="34" rx="5" fill="#f2f2f2"/>
+  </g>
+  <g font-size="10" fill="#8f8a82" text-anchor="middle">
+    <text x="84"  y="259">7C7768</text>
+    <text x="186" y="259">D93A2B</text>
+    <text x="288" y="259">8FBE7E</text>
+    <text x="390" y="259">E0A860</text>
+    <text x="492" y="259">8AA6C4</text>
+    <text x="594" y="259">C08FA0</text>
+    <text x="696" y="259">8FC4BC</text>
+    <text x="798" y="259">F2F2F2</text>
+  </g>
+</svg>

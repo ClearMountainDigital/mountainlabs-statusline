@@ -25,11 +25,11 @@
   <polygon points="478,66 492,81 478,96" fill="#3f5147"/>
   <!-- segment text -->
   <text x="46"  y="86" font-size="15" fill="#f2f2f2">Opus 4.8 <tspan fill="#96b4cd">∞</tspan>·high <tspan fill="#8fbe7e">▲</tspan></text>
-  <text x="238" y="86" font-size="15" fill="#f2f2f2">makersmanager</text>
+  <text x="238" y="86" font-size="15" fill="#f2f2f2">my-project</text>
   <text x="392" y="86" font-size="15" fill="#f2f2f2">main <tspan fill="#c98e47">↓6</tspan></text>
 
   <!-- ============ LINE 2 · telemetry ============ -->
   <text x="34" y="124" font-size="14.5" letter-spacing="0.5">
-    <tspan fill="#78766f">ctx </tspan><tspan fill="#8fbe7e">███</tspan><tspan fill="#40403c">░░░░░░░</tspan><tspan fill="#8fbe7e"> 68k</tspan><tspan fill="#78766f">/1.0M</tspan><tspan fill="#78766f">   5h </tspan><tspan fill="#40403c">░░░░</tspan><tspan fill="#8fbe7e"> 6%</tspan><tspan fill="#78766f">·⟳2h13m</tspan><tspan fill="#78766f">   wk </tspan><tspan fill="#40403c">░░░░</tspan><tspan fill="#8fbe7e"> 1%</tspan><tspan fill="#78766f">·⟳3d11h</tspan><tspan fill="#8fbe7e">   ~$2.62</tspan><tspan fill="#78766f"> ·$0.63/h</tspan><tspan fill="#8fbe7e">   +5</tspan><tspan fill="#78766f">   4m 9s</tspan>
+    <tspan fill="#78766f">ctx </tspan><tspan fill="#8fbe7e">███</tspan><tspan fill="#40403c">░░░░░░░</tspan><tspan fill="#8fbe7e"> 68k</tspan><tspan fill="#78766f">/1.0M</tspan><tspan fill="#78766f">   5h </tspan><tspan fill="#40403c">░░░░</tspan><tspan fill="#8fbe7e"> 6%</tspan><tspan fill="#78766f"> (2h13m)</tspan><tspan fill="#78766f">   wk </tspan><tspan fill="#40403c">░░░░</tspan><tspan fill="#8fbe7e"> 1%</tspan><tspan fill="#78766f"> (3d11h)</tspan><tspan fill="#8fbe7e">   ~$2.62</tspan><tspan fill="#78766f"> ·$0.63/h</tspan><tspan fill="#8fbe7e">   +5</tspan><tspan fill="#78766f">   4m 9s</tspan>
   </text>
 </svg>

@@ -15,7 +15,7 @@ First public release.
   auto-detected from git, and `↑ahead ↓behind +staged ✎modified …untracked`, collapsing to
   a green `✓` when clean.
 - **Line 2 — telemetry:** context gauge scaled to the full window, 5-hour and weekly usage
-  caps with `⟳` reset countdowns, model-aware cost with a `·$X/h` burn-rate, line churn,
+  caps with reset countdowns, model-aware cost with a `·$X/h` burn-rate, line churn,
   and a session timer.
 - Shared green→rust→red semantic ramp across every gauge, with tunable flip points.
 - `install.sh` one-command installer (backs up any existing config), and an optional
