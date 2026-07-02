@@ -14,31 +14,42 @@
 #  folder /  worktree / powerline separator glyphs.
 set -o pipefail
 input="$(cat)"
-j() { printf '%s' "$input" | jq -r "$1" 2>/dev/null; }
-
 # ------------------------------------------------------------------ data ----
-MODEL="$(j '.model.display_name // "Claude"')"
+# One jq pass reads every field as a single delimited row (18 columns, fixed
+# order) instead of forking jq once per field. The `// ""` / `// 0` / literal
+# defaults preserve the same graceful fallbacks the per-field reads had (an
+# absent field reads empty/zero). If jq is missing or the input is unparseable,
+# every variable reads empty — the same degradation as before.
+#   The delimiter is the ASCII unit separator (\x1f), NOT a tab: `read` treats
+#   tab as IFS-whitespace and would collapse consecutive empty fields, shifting
+#   every later column. \x1f is non-whitespace, so empty columns are preserved.
+#   Notes: .speed/.fast is fast mode (not in the documented schema — shown only
+#   if present); .transcript_path/.session_id locate this session's subagents.
+IFS=$'\037' read -r \
+  MODEL EFFORT DIR WT COST DUR_MS ADDED REMOVED \
+  CTX_PCT IN_TOK CTX_SIZE FIVE_H SEVEN_D FIVE_RESET SEVEN_RESET \
+  FAST TRANSCRIPT SESSION < <(printf '%s' "$input" | jq -r '
+    [ (.model.display_name // "Claude"),
+      (.effort.level // ""),
+      (.workspace.current_dir // .cwd // ""),
+      (.workspace.git_worktree // .worktree.name // ""),
+      (.cost.total_cost_usd // 0),
+      (.cost.total_duration_ms // 0),
+      (.cost.total_lines_added // 0),
+      (.cost.total_lines_removed // 0),
+      (.context_window.used_percentage // ""),
+      (.context_window.total_input_tokens // 0),
+      (.context_window.context_window_size // 200000),
+      (.rate_limits.five_hour.used_percentage // ""),
+      (.rate_limits.seven_day.used_percentage // ""),
+      (.rate_limits.five_hour.resets_at // ""),
+      (.rate_limits.seven_day.resets_at // ""),
+      (.speed // .fast // ""),
+      (.transcript_path // ""),
+      (.session_id // "") ] | map(tostring) | join("\u001f")' 2>/dev/null)
+
 # detect + strip a "(1M context)" suffix; mark it so line 1 shows a compact ∞ glyph
 HAS_1M=""; case "$MODEL" in *"(1M context)"*) HAS_1M=1; MODEL="${MODEL/ (1M context)/}";; esac
-EFFORT="$(j '.effort.level // empty')"
-DIR="$(j '.workspace.current_dir // .cwd // empty')"
-WT="$(j '.workspace.git_worktree // .worktree.name // empty')"
-COST="$(j '.cost.total_cost_usd // 0')"
-DUR_MS="$(j '.cost.total_duration_ms // 0')"
-ADDED="$(j '.cost.total_lines_added // 0')"
-REMOVED="$(j '.cost.total_lines_removed // 0')"
-CTX_PCT="$(j '.context_window.used_percentage // empty')"
-IN_TOK="$(j '.context_window.total_input_tokens // 0')"
-CTX_SIZE="$(j '.context_window.context_window_size // 200000')"
-FIVE_H="$(j '.rate_limits.five_hour.used_percentage // empty')"
-SEVEN_D="$(j '.rate_limits.seven_day.used_percentage // empty')"
-FIVE_RESET="$(j '.rate_limits.five_hour.resets_at // empty')"
-SEVEN_RESET="$(j '.rate_limits.seven_day.resets_at // empty')"
-# fast mode is not in the documented statusline schema — shown only if it appears
-FAST="$(j '.speed // .fast // empty')"
-# transcript + session id: used to locate this session's subagent transcripts
-TRANSCRIPT="$(j '.transcript_path // empty')"
-SESSION="$(j '.session_id // empty')"
 
 # -------------------------------------------------------------- tunables ----
 # The 5h/weekly cap bars flip in three zones, as % of the cap:
