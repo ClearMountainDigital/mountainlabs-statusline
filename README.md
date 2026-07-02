@@ -19,7 +19,7 @@ Claude Code streams live session state to your statusline command as JSON on eve
 
 ```
  Opus 4.8 ∞·high ▲    my-project    main ↓6
-ctx ███░░░░░░░ 68k/1.0M   5h ░░░░ 6% (2h13m)   wk ░░░░ 1% (3d11h)   ~$2.62 ·$0.63/h   +5   4m 9s
+ctx ███░░░░░░░ 68k/1.0M   5h ░░░░ 6% (2h13m)   wk ░░░░ 1% (3d11h)   ~$2.62 ·$0.63/h   agt 3·~$1.94 (46%)   +5   4m 9s
 ```
 
 ---
@@ -35,11 +35,12 @@ ctx ███░░░░░░░ 68k/1.0M   5h ░░░░ 6% (2h13m)   wk �
 - **Context** — a bar scaled to the full context window plus `used / total` tokens.
 - **Usage caps** — rolling **5-hour** and **weekly** limits, each with a reset countdown in parentheses (Pro/Max plans; hidden on pay-as-you-go API billing).
 - **Cost** — the model-aware session estimate, colored by size, with a `·$/h` burn rate.
+- **Agent spend** — cost of Task/Agent **subagents** this session (`agt 3·~$1.94 (46%)`): subagent count, their summed cost, and the share of total spend they account for. Subagents run in their own context window, so this money never shows up in the context gauge — this segment is what explains a climbing bill next to a flat `ctx`. Appears only when the session has spawned subagents.
 - **Churn** — lines added / removed this session.
 - **Timer** — session wall-clock.
 
 > [!NOTE]
-> It reads only what Claude Code sends on stdin — no background daemon, no log parsing. When the CLI's numbers change, so does the bar.
+> Almost everything is read straight from the stdin payload — no background daemon, no log parsing. The one exception is **agent spend**, which sums the session's subagent transcripts (Claude Code doesn't report subagent cost on stdin); that read is signature-gated and cached so it only re-parses when a subagent transcript actually changes.
 
 ---
 
@@ -100,6 +101,7 @@ Runs on **macOS** and **Linux**, in any terminal. Set the terminal font to the i
 | Context | `ctx ███░░░░░░░ 68k/1.0M` | Bar scaled to the full window; colored by % used. Shows `ctx —` until the CLI reports usage. |
 | 5h / weekly caps | `5h ░░░░ 6% (2h13m)` | Usage against your rolling caps + time to reset. Pro/Max only. |
 | Cost | `~$2.62 ·$0.63/h` | Model-aware estimate (`~` = estimate) + burn rate. |
+| Agent spend | `agt 3·~$1.94 (46%)` | Subagent count · their summed cost · % of session spend. Priced per each subagent's own model. Hidden until the session spawns a subagent. |
 | Churn | `+5 −0` → `+5` | Lines added / removed; zero sides are hidden. |
 | Timer | `4m 9s` | Session wall-clock. |
 
@@ -160,6 +162,8 @@ A **project** `.claude/settings.json` with its own `statusLine` (e.g. `ccusage`)
 | Boxes / `?` where icons should be | Terminal font isn't a Nerd Font. Install one and set it as the terminal font. |
 | 5h / weekly gauges missing | Expected on pay-as-you-go API billing — those fields come with Pro/Max plans. |
 | Cost looks off | Update the Claude Code CLI; the estimate tracks the pricing the installed version knows. |
+| `agt` segment missing | Expected until the session spawns a Task/Agent subagent. Older CLIs that inline subagent turns (no `subagents/` dir) won't populate it. |
+| `agt` cost looks off | Its per-model rates are a local estimate — sync the `agent_spend` pricing block with [claude.com/pricing](https://claude.com/pricing). |
 | Bar is blank or errors | Run it by hand: `echo '{}' \| ~/.claude/statusline.sh` (needs `jq`). |
 | A project shows a different bar | Settings precedence — see above. |
 
@@ -189,7 +193,9 @@ Copy it to `~/.config/ghostty/config` and reload with `Cmd+Shift+,`.
 
 ## How it works
 
-Claude Code invokes your `statusLine.command` on every render and pipes it a JSON object of session state on **stdin**. This script reads it with `jq`, formats two lines of ANSI-colored text, and prints them. Fields used: `model`, `workspace.current_dir`, `context_window.*`, `cost.*`, `rate_limits.*`. Git state comes from `git` run against the workspace directory, which is what makes branch and worktree detection accurate regardless of the payload.
+Claude Code invokes your `statusLine.command` on every render and pipes it a JSON object of session state on **stdin**. This script reads it with `jq`, formats two lines of ANSI-colored text, and prints them. Fields used: `model`, `workspace.current_dir`, `context_window.*`, `cost.*`, `rate_limits.*`, plus `transcript_path` and `session_id` for agent spend. Git state comes from `git` run against the workspace directory, which is what makes branch and worktree detection accurate regardless of the payload.
+
+**Agent spend** is the one piece not on stdin. Each Task/Agent subagent runs in its own context window and gets its own transcript at `<transcript_path minus .jsonl>/subagents/agent-*.jsonl`. Every assistant line there carries a `message.usage` block (`input_tokens`, `output_tokens`, `cache_creation_input_tokens`, `cache_read_input_tokens`) and its own `message.model` — subagents frequently run a cheaper model than the main thread, so each line is priced by its own model. The parse is gated by a cheap `count-mtime-size` signature written to `${XDG_CACHE_HOME:-~/.cache}/mountainlabs-statusline/`, so a busy session re-parses only when a subagent transcript actually changes; steady state is one `stat()` per file. Pricing multipliers live in the `agent_spend` function — update them from [claude.com/pricing](https://claude.com/pricing) when rates change.
 
 See the [statusline docs](https://code.claude.com/docs/en/statusline) for the full schema.
 

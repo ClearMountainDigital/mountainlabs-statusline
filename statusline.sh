@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # ============================================================================
-# MountainLabs — Claude Code statusline          v1.0.0 · MIT · MountainLabs.ai
+# MountainLabs — Claude Code statusline          v1.1.0 · MIT · MountainLabs.ai
 # https://github.com/ClearMountainDigital/mountainlabs-statusline
 #
 # A two-line live dashboard rendered above the Claude Code prompt:
 #   Line 1 (identity):  model+effort · folder · git branch/worktree/status
-#   Line 2 (telemetry): context · 5h/weekly caps · cost+burn · churn · timer
+#   Line 2 (telemetry): context · 5h/weekly caps · cost+burn · agent spend · churn · timer
 #
 # Reads the native status JSON Claude Code streams on stdin — no log scraping
 # and no estimates of our own; the same numbers the app itself reports.
@@ -36,6 +36,9 @@ FIVE_RESET="$(j '.rate_limits.five_hour.resets_at // empty')"
 SEVEN_RESET="$(j '.rate_limits.seven_day.resets_at // empty')"
 # fast mode is not in the documented statusline schema — shown only if it appears
 FAST="$(j '.speed // .fast // empty')"
+# transcript + session id: used to locate this session's subagent transcripts
+TRANSCRIPT="$(j '.transcript_path // empty')"
+SESSION="$(j '.session_id // empty')"
 
 # -------------------------------------------------------------- tunables ----
 # All gauges share one green→rust→red ramp. Flip points, as percentages:
@@ -82,6 +85,55 @@ until_reset(){ local now diff d h m; now="$(date +%s)"; diff=$(( $1 - now ))
   if   [ "$d" -gt 0 ]; then printf '%dd%dh' "$d" "$h"
   elif [ "$h" -gt 0 ]; then printf '%dh%dm' "$h" "$m"
   else printf '%dm' "$m"; fi; }
+
+# portable stat: BSD (-f) then GNU (-c); emits "<mtime> <size>" per file
+_stat_ms(){ stat -f '%m %z' "$@" 2>/dev/null || stat -c '%Y %s' "$@" 2>/dev/null; }
+
+# Subagent spend. Task/Agent subagents run in their OWN context window, so their
+# work never lands in the ctx gauge above — but Claude Code still bills it. Each
+# subagent gets its own transcript at <session>/subagents/agent-*.jsonl; we sum
+# message.usage across them, priced per each line's own model (agents often run a
+# cheaper model than the main thread). Emits "<count> <cost_usd>".
+#
+# Rates below are per-MTok base input / output; cache is a multiple of base input
+# (5m write ×1.25, 1h write ×2, read ×0.1). Keep in sync with claude.com/pricing.
+# Parsing is gated by a cheap file signature + on-disk cache so a busy session
+# doesn't re-parse every render — steady state is one stat() per file.
+agent_spend(){ # $1 subagents dir  $2 cache file
+  local dir="$1" cache="$2" sig cached_sig cached_val val n
+  sig="$(_stat_ms "$dir"/*.jsonl 2>/dev/null | awk '{m=($1>m)?$1:m;s+=$2;n++}END{print n"-"m"-"s}')"
+  case "$sig" in ''|0-*) printf '0 0'; return;; esac
+  if [ -r "$cache" ]; then IFS='|' read -r cached_sig cached_val < "$cache"; fi
+  if [ "$sig" = "$cached_sig" ] && [ -n "$cached_val" ]; then printf '%s' "$cached_val"; return; fi
+  n="$(ls "$dir"/*.jsonl 2>/dev/null | grep -c '')"
+  val="$(
+    for f in "$dir"/*.jsonl; do
+      jq -rc 'select(.type=="assistant") | .message as $m | [
+          ($m.model // "unknown"),
+          ($m.usage.input_tokens // 0), ($m.usage.output_tokens // 0),
+          ($m.usage.cache_read_input_tokens // 0),
+          ($m.usage.cache_creation.ephemeral_5m_input_tokens // 0),
+          ($m.usage.cache_creation.ephemeral_1h_input_tokens // 0),
+          ($m.usage.cache_creation_input_tokens // 0)] | @tsv' "$f" 2>/dev/null
+    done | awk -F'\t' -v n="$n" '
+      function rates(mo){
+        if(mo ~ /haiku-3/){bi=0.8;bo=4}
+        else if(mo ~ /haiku/){bi=1;bo=5}
+        else if(mo ~ /fable|mythos/){bi=10;bo=50}
+        else if(mo ~ /opus-4-(5|6|7|8)/){bi=5;bo=25}
+        else if(mo ~ /opus/){bi=15;bo=75}          # Opus 4.1 and earlier
+        else if(mo ~ /sonnet-5/){bi=2;bo=10}       # intro pricing thru 2026-08-31
+        else if(mo ~ /sonnet/){bi=3;bo=15}
+        else {bi=3;bo=15} }
+      { mo=$1;inp=$2;out=$3;cr=$4;c5=$5;c1=$6;cctot=$7
+        if(c5==0 && c1==0) c5=cctot               # fallback: treat unknown cache as 5m
+        rates(mo); tot+=(inp*bi+cr*bi*0.1+c5*bi*1.25+c1*bi*2+out*bo)/1e6 }
+      END{ printf "%d %.2f", n+0, tot+0 }'
+  )"
+  [ -z "$val" ] && val="0 0"
+  mkdir -p "$(dirname "$cache")" 2>/dev/null
+  printf '%s|%s\n' "$sig" "$val" > "$cache" 2>/dev/null
+  printf '%s' "$val"; }
 
 bar(){ # $1 fill(0..width) $2 width $3 fill-color
   local f=$1 w=$2 c=$3 i out=""
@@ -176,6 +228,25 @@ if [ "${DUR_MS:-0}" -gt 0 ]; then
   cost+="$(fg "$DIM") ·\$${rate}/h$(rs)"
 fi
 
+# agent spend — cost of Task/Agent subagents this session. It lives here next to
+# cost (not context) on purpose: agents burn dollars but almost nothing lands in
+# the ctx gauge, so this segment is what explains a rising bill beside a flat ctx.
+agents=""
+if [ -n "$TRANSCRIPT" ]; then
+  _subdir="${TRANSCRIPT%.jsonl}/subagents"
+  if [ -d "$_subdir" ]; then
+    _cache="${XDG_CACHE_HOME:-$HOME/.cache}/mountainlabs-statusline/${SESSION:-default}.agents"
+    read -r acount acost < <(agent_spend "$_subdir" "$_cache")
+    if [ "${acount:-0}" -gt 0 ]; then
+      acol="$(cost_col "$acost")"
+      agents="   $(fg "$DIM")agt$(rs) $(fg "$acol")${acount}$(fg "$DIM")·$(fg "$acol")$(printf '~$%.2f' "$acost")$(rs)"
+      # share of total session spend the agents account for — the "invisible" cost
+      pctspend="$(awk -v a="$acost" -v c="$COST" 'BEGIN{ if(c+0>0){p=a/c*100; if(p>100)p=100; printf "%d",p+0.5} else print 0 }')"
+      [ "${pctspend:-0}" -gt 0 ] && agents+="$(fg "$DIM") (${pctspend}%)$(rs)"
+    fi
+  fi
+fi
+
 churn=""
 if [ "${ADDED:-0}" -gt 0 ] || [ "${REMOVED:-0}" -gt 0 ]; then
   churn="   "
@@ -187,6 +258,6 @@ fi
 secs=$(( DUR_MS / 1000 )); mins=$(( secs / 60 )); secs=$(( secs % 60 ))
 timer="   $(fg "$DIM")${mins}m ${secs}s$(rs)"
 
-line2="${ctx}${caps}${cost}${churn}${timer}"
+line2="${ctx}${caps}${cost}${agents}${churn}${timer}"
 
 printf '%s\n%s\n' "$line1" "$line2"
