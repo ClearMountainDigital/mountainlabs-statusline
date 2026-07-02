@@ -160,7 +160,9 @@ _stat_ms(){ stat -f '%m %z' "$@" 2>/dev/null || stat -c '%Y %s' "$@" 2>/dev/null
 # cheaper model than the main thread). Emits "<count> <cost_usd>".
 #
 # Rates below are per-MTok base input / output; cache is a multiple of base input
-# (5m write ×1.25, 1h write ×2, read ×0.1). Keep in sync with claude.com/pricing.
+# (5m write ×1.25, 1h write ×2, read ×0.1). This `rates()` table is the single
+# source of pricing — no other copy exists. Sync it with https://claude.com/pricing
+# when rates change and bump the date. Last synced: 2026-07-01.
 # Parsing is gated by a cheap file signature + on-disk cache so a busy session
 # doesn't re-parse every render — steady state is one stat() per file.
 agent_spend(){ # $1 subagents dir  $2 cache file

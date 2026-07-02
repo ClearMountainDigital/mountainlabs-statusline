@@ -24,10 +24,17 @@ DEST="$CLAUDE_DIR/statusline.sh"
 SETTINGS="$CLAUDE_DIR/settings.json"
 
 c(){ printf '\033[38;2;%sm%s\033[0m' "$1" "$2"; }        # color helper
-FOREST='63;81;71'; RUST='140;72;32'; SAGE='110;150;120'; DIM='120;120;115'
-say(){ printf '%s %s\n' "$(c "$FOREST" '▲')" "$1"; }
-ok(){  printf '%s %s\n' "$(c "$SAGE" '✓')" "$1"; }
-warn(){ printf '%s %s\n' "$(c "$RUST" '!')" "$1"; }
+# The installer's own small, cosmetic palette — deliberately separate from the
+# runtime statusline palette in statusline.sh (which is user-overridable, #0007).
+# Named UI_* so the two never masquerade as one shared source: this is installer
+# chrome, not the statusline's colors.
+UI_ACCENT='63;81;71'   # ▲ progress arrow
+UI_ALERT='140;72;32'   # heading + warnings
+UI_OK='110;150;120'    # ✓ success
+UI_MUTE='120;120;115'  # secondary / footnote text
+say(){ printf '%s %s\n' "$(c "$UI_ACCENT" '▲')" "$1"; }
+ok(){  printf '%s %s\n' "$(c "$UI_OK" '✓')" "$1"; }
+warn(){ printf '%s %s\n' "$(c "$UI_ALERT" '!')" "$1"; }
 
 # sha256 of a file via whichever tool is present (BSD shasum on macOS, GNU
 # sha256sum on Linux). Prints the bare hash, or returns non-zero if neither exists.
@@ -55,7 +62,7 @@ verify(){
   ok "Verified checksum (sha256)"
 }
 
-printf '\n%s\n\n' "$(c "$RUST" 'MountainLabs statusline')"
+printf '\n%s\n\n' "$(c "$UI_ALERT" 'MountainLabs statusline')"
 
 # --- dependency check -------------------------------------------------------
 missing=""
@@ -110,10 +117,10 @@ else
 fi
 
 # --- done -------------------------------------------------------------------
-printf '\n%s\n' "$(c "$SAGE" 'Done.')"
-c "$DIM" 'Next:'; printf '\n'
+printf '\n%s\n' "$(c "$UI_OK" 'Done.')"
+c "$UI_MUTE" 'Next:'; printf '\n'
 echo "  1. Install a Nerd Font for the glyphs, e.g.  brew install --cask font-jetbrains-mono-nerd-font"
 echo "     then set your terminal font to it (JetBrainsMono Nerd Font)."
 echo "  2. Restart Claude Code (or start a new session) to see the bar."
 echo "  3. Optional MountainLabs terminal theme: examples/ghostty.config"
-printf '\n%s\n\n' "$(c "$DIM" 'Note: a project .claude/settings.json can override the user-level statusLine — see the README.')"
+printf '\n%s\n\n' "$(c "$UI_MUTE" 'Note: a project .claude/settings.json can override the user-level statusLine — see the README.')"
