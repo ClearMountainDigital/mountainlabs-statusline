@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================================
-# MountainLabs — Claude Code statusline          v1.2.0 · MIT · MountainLabs.ai
+# MountainLabs — Claude Code statusline          v1.2.1 · MIT · MountainLabs.ai
 # https://github.com/ClearMountainDigital/mountainlabs-statusline
 #
 # A two-line live dashboard rendered above the Claude Code prompt:

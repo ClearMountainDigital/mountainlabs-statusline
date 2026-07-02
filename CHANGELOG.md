@@ -3,6 +3,21 @@
 All notable changes to this project are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/); versions follow [SemVer](https://semver.org/).
 
+## [1.2.1] — 2026-07-02
+
+Test-only release — no change to the rendered output. Locks in Fable 5 / Mythos 5
+support that was already present in the code but previously uncovered.
+
+### Added
+- **Golden coverage for Fable 5 / Mythos 5.** `model-fable` asserts the Fable 5
+  identity render — its `high ▲` effort glyph and 1M window shown **without** the
+  `∞` glyph, since 1M is Fable's default (its display name carries no
+  `(1M context)` suffix, unlike an opt-in 1M model). `agent-spend-fable` prices a
+  1M-in + 1M-out Fable subagent to exactly `~$60.00`, asserting the `fable|mythos`
+  rate ($10/$50 per MTok) is applied and not shadowed by the opus/sonnet branches.
+
+[1.2.1]: https://github.com/ClearMountainDigital/mountainlabs-statusline/releases/tag/v1.2.1
+
 ## [1.2.0] — 2026-07-02
 
 Infrastructure and hardening release — no change to the rendered output. The render
