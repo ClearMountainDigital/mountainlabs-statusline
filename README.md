@@ -4,6 +4,7 @@
 
 **A two-line statusline for [Claude Code](https://claude.com/claude-code) — model, git, context, usage caps, and cost, above your prompt.**
 
+[![CI](https://github.com/ClearMountainDigital/mountainlabs-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/ClearMountainDigital/mountainlabs-statusline/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3f5147.svg)](LICENSE)
 [![Shell: bash](https://img.shields.io/badge/shell-bash-8c4820.svg)](statusline.sh)
 [![Platform: macOS · Linux](https://img.shields.io/badge/platform-macOS%20%C2%B7%20Linux-716a56.svg)](#requirements)
