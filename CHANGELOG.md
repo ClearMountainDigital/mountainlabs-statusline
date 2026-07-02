@@ -3,6 +3,48 @@
 All notable changes to this project are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/); versions follow [SemVer](https://semver.org/).
 
+## [1.2.0] — 2026-07-02
+
+Infrastructure and hardening release — no change to the rendered output. The render
+is now covered by tests, faster per redraw, tunable without editing the script, and
+installable from a verified, version-pinned source.
+
+### Added
+- **Golden-output test harness** (`tests/run.sh`) with fixtures for every render
+  branch — no-git / clean / dirty / detached / worktree, each effort level, caps
+  present/absent, 1M vs standard model, agent-spend, and the empty `{}` payload.
+  `--update` regenerates goldens; goldens strip ANSI so they diff cleanly.
+- **Lint** (`tests/lint.sh`) runs `shellcheck` over every shell script, and **CI**
+  runs lint + tests on push and PR across `ubuntu-latest` and `macos-latest` (the
+  bash-3.2 / BSD-utility path most users actually run on).
+- **Update-safe configuration.** Every threshold, palette color, and effort glyph is
+  overridable by environment variable or an optional config file
+  (`$MOUNTAINLABS_STATUSLINE_CONFIG`, else `${XDG_CONFIG_HOME:-~/.config}/mountainlabs-statusline/config`),
+  precedence env > file > built-in default. Upgrading — which overwrites the whole
+  script — no longer clobbers a user's tweaks. Ships a commented `examples/statusline.conf`.
+- **Hardened installer.** `install.sh` pins downloads to a release tag (not `main`)
+  and verifies the fetched script against a published SHA-256 in `checksums.txt`,
+  aborting on mismatch. `RELEASING.md` documents the release process that keeps the
+  tag, CHANGELOG, script header, and checksum in lockstep.
+- **Contributor scaffolding:** `CONTRIBUTING.md`, `.editorconfig`, GitHub issue and
+  PR templates, and a stated **bash 3.2** support floor.
+
+### Changed
+- **Faster per-render** (~230 ms → ~120 ms on a real git repo): field extraction is
+  one `jq` pass instead of 18; ANSI escapes are precomputed once at startup instead
+  of a subshell per color per cell; and the git block is a single
+  `git status --porcelain=v2 --branch --untracked-files=all` instead of 5+ `git`
+  spawns. Output is byte-for-byte identical (guarded by a raw-bytes capture, since
+  goldens strip ANSI).
+- **Single-sourced constants.** The installer's cosmetic colors are renamed `UI_*`
+  so they can't masquerade as the runtime palette (which is now the one definition,
+  and user-overridable). The agent-spend pricing table is marked as the single
+  source with a `claude.com/pricing` pointer and a last-synced date.
+- **Shellcheck-clean** across `statusline.sh` and `install.sh`, with justified,
+  inline-documented disables only where a warning is a deliberate, safe choice.
+
+[1.2.0]: https://github.com/ClearMountainDigital/mountainlabs-statusline/releases/tag/v1.2.0
+
 ## [1.1.0] — 2026-07-01
 
 ### Added
