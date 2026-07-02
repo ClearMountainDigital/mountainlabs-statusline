@@ -41,9 +41,13 @@ TRANSCRIPT="$(j '.transcript_path // empty')"
 SESSION="$(j '.session_id // empty')"
 
 # -------------------------------------------------------------- tunables ----
-# All gauges share one green→rust→red ramp. Flip points, as percentages:
-CTX_WARN_PCT=70    # context + caps: sage -> rust at this % of the window/cap
-CTX_DANGER_PCT=90  # ...             rust -> red  at this %
+# The 5h/weekly cap bars flip in three zones, as % of the cap:
+CTX_WARN_PCT=70    # caps: sage -> rust at this % of the cap
+CTX_DANGER_PCT=90  # caps: rust -> red  at this %
+# The context bar is a smooth gradient keyed on ABSOLUTE tokens (not % of window):
+# quality degrades past ~100k regardless of a 1M window, so color follows tokens.
+CTX_GOOD_TOK=100000  # end of the "smart zone" — pure sage up to here
+CTX_RED_TOK=400000   # tokens at which the bar hits full red, then clamps (dumb zone)
 COST_WARN=5        # session cost:   sage -> rust at this many dollars
 COST_DANGER=20     # ...             rust -> red  at this many dollars
 
@@ -142,6 +146,35 @@ bar(){ # $1 fill(0..width) $2 width $3 fill-color
   done
   printf '%s%s' "$out" "$(rs)"; }
 
+# ramp color for an absolute token count -> "R;G;B": pure sage <= CTX_GOOD_TOK,
+# then sage->rust->red across [CTX_GOOD_TOK, CTX_RED_TOK], clamped to red beyond.
+grad_color(){ # $1 tokens
+  awk -v t="$1" -v good="$CTX_GOOD_TOK" -v redt="$CTX_RED_TOK" \
+      -v sage="$SAGE" -v rust="$RUST" -v red="$RED" 'BEGIN{
+    split(sage,s,";");split(rust,u,";");split(red,r,";"); if(redt<=good)redt=good+1;
+    if(t<=good){printf "%d;%d;%d",s[1],s[2],s[3];exit}
+    fr=(t-good)/(redt-good); if(fr>1)fr=1; if(fr<0)fr=0;
+    if(fr<=0.5){k=fr/0.5; printf "%d;%d;%d",s[1]+(u[1]-s[1])*k+.5,s[2]+(u[2]-s[2])*k+.5,s[3]+(u[3]-s[3])*k+.5}
+    else       {k=(fr-0.5)/0.5; printf "%d;%d;%d",u[1]+(r[1]-u[1])*k+.5,u[2]+(r[2]-u[2])*k+.5,u[3]+(r[3]-u[3])*k+.5} }'; }
+
+# gradient bar: each filled cell is colored by the token position IT represents,
+# so a partly-full bar visibly warms as it reaches into the dumb zone. One awk call.
+bar_grad(){ # $1 fill(0..width) $2 width $3 scale-tokens (context window size)
+  awk -v f="$1" -v w="$2" -v mx="$3" -v good="$CTX_GOOD_TOK" -v redt="$CTX_RED_TOK" \
+      -v sage="$SAGE" -v rust="$RUST" -v red="$RED" -v track="$TRACK" 'BEGIN{
+    split(sage,s,";");split(rust,u,";");split(red,r,";"); esc=sprintf("%c[",27); if(redt<=good)redt=good+1;
+    for(i=0;i<w;i++){
+      if(i<f){
+        tok=(i*mx)/w + (mx/w)/2;                       # tokens at the center of this cell
+        if(tok<=good){R=s[1];G=s[2];B=s[3]}
+        else{ fr=(tok-good)/(redt-good); if(fr>1)fr=1; if(fr<0)fr=0;
+          if(fr<=0.5){k=fr/0.5; R=s[1]+(u[1]-s[1])*k;G=s[2]+(u[2]-s[2])*k;B=s[3]+(u[3]-s[3])*k}
+          else       {k=(fr-0.5)/0.5; R=u[1]+(r[1]-u[1])*k;G=u[2]+(r[2]-u[2])*k;B=u[3]+(r[3]-u[3])*k} }
+        printf "%s38;2;%d;%d;%dm█", esc, R+.5,G+.5,B+.5;
+      } else printf "%s38;2;%sm░", esc, track;
+    }
+    printf "%s0m", esc; }'; }
+
 # ============================================================ LINE 1 ========
 model_txt="${MODEL}"
 [ -n "$HAS_1M" ] && model_txt="${model_txt} $(fg "$SKY")∞$(fg "$CREAM")"
@@ -201,24 +234,28 @@ done
 # ============================================================ LINE 2 ========
 # context
 if [ -n "$CTX_PCT" ]; then
-  cpct=${CTX_PCT%.*}
-  # bar scales to the FULL context window (rounded so small usage still shows a sliver)
+  # bar scales to the FULL context window (rounded so small usage still shows a sliver);
+  # color is an absolute-token gradient — green in the smart zone, warming into the dumb zone.
   fill=$(( (IN_TOK * 10 + CTX_SIZE / 2) / CTX_SIZE )); [ "$fill" -gt 10 ] && fill=10
-  col="$(pct_color "$cpct")"
-  ctx="$(fg "$DIM")ctx$(rs) $(bar "$fill" 10 "$col") $(fg "$col")$(fmt_tokens "$IN_TOK")$(fg "$DIM")/$(fmt_tokens "$CTX_SIZE")$(rs)"
+  # floor: any nonzero usage shows at least a 1-cell sliver (never an empty bar next to a live number)
+  [ "$fill" -lt 1 ] && [ "${IN_TOK:-0}" -gt 0 ] && fill=1
+  col="$(grad_color "$IN_TOK")"
+  ctx="$(fg "$DIM")ctx$(rs) $(bar_grad "$fill" 10 "$CTX_SIZE") $(fg "$col")$(fmt_tokens "$IN_TOK")$(fg "$DIM")/$(fmt_tokens "$CTX_SIZE")$(rs)"
 else
   ctx="$(fg "$DIM")ctx —$(rs)"
 fi
 
+# same 1-cell floor as the context bar: a live percentage never shows an empty gauge
+cap_fill(){ f=$(( (${1%.*} * 4 + 50) / 100 )); [ "$f" -lt 1 ] && [ "${1%.*}" -gt 0 ] && f=1; printf '%s' "$f"; }
 caps=""
 if [ -n "$FIVE_H" ]; then
   c="$(pct_color "$FIVE_H")"
-  caps+="   $(fg "$DIM")5h$(rs) $(bar $(( (${FIVE_H%.*} * 4 + 50) / 100 )) 4 "$c") $(fg "$c")${FIVE_H%.*}%$(rs)"
+  caps+="   $(fg "$DIM")5h$(rs) $(bar "$(cap_fill "$FIVE_H")" 4 "$c") $(fg "$c")${FIVE_H%.*}%$(rs)"
   [ -n "$FIVE_RESET" ] && caps+="$(fg "$DIM") ($(until_reset "$FIVE_RESET"))$(rs)"
 fi
 if [ -n "$SEVEN_D" ]; then
   c="$(pct_color "$SEVEN_D")"
-  caps+="   $(fg "$DIM")wk$(rs) $(bar $(( (${SEVEN_D%.*} * 4 + 50) / 100 )) 4 "$c") $(fg "$c")${SEVEN_D%.*}%$(rs)"
+  caps+="   $(fg "$DIM")wk$(rs) $(bar "$(cap_fill "$SEVEN_D")" 4 "$c") $(fg "$c")${SEVEN_D%.*}%$(rs)"
   [ -n "$SEVEN_RESET" ] && caps+="$(fg "$DIM") ($(until_reset "$SEVEN_RESET"))$(rs)"
 fi
 

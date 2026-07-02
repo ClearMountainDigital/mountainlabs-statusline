@@ -19,6 +19,22 @@ All notable changes to this project are documented here. Format loosely follows
   re-parses only when a subagent transcript changes — steady state is one
   `stat()` per file.
 
+### Changed
+- **Context bar is now an absolute-token gradient** instead of a percentage-zone
+  flat fill. Each cell is colored by the tokens it represents: pure sage through
+  the ~100k "smart zone" (`CTX_GOOD_TOK`), then a smooth sage → rust → red ramp
+  that reaches full red by 400k (`CTX_RED_TOK`) and clamps. This flags context
+  degradation on large windows where a percentage bar can't — 600k on a 1M window
+  is only 60% but is deep in the "dumb zone." The 5h/weekly cap bars are unchanged
+  (still the three-zone `_PCT` flip).
+
+### Fixed
+- **Gauges never show an empty bar next to a live number.** Both the context bar
+  and the 5h/weekly cap bars now floor to a 1-cell sliver whenever their value is
+  above zero — previously any usage that rounded below one cell (e.g. 68k on a 1M
+  window, or a 6% cap) drew an all-empty track, which read as broken. Zero still
+  renders empty.
+
 ### Notes
 - Agent-spend rates are a local estimate; keep the `agent_spend` pricing block in
   sync with [claude.com/pricing](https://claude.com/pricing).

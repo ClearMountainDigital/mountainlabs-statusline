@@ -19,7 +19,7 @@ Claude Code streams live session state to your statusline command as JSON on eve
 
 ```
  Opus 4.8 ∞·high ▲    my-project    main ↓6
-ctx ███░░░░░░░ 68k/1.0M   5h ░░░░ 6% (2h13m)   wk ░░░░ 1% (3d11h)   ~$2.62 ·$0.63/h   agt 3·~$1.94 (46%)   +5   4m 9s
+ctx ███░░░░░░░ 68k/1.0M   5h █░░░ 6% (2h13m)   wk █░░░ 1% (3d11h)   ~$2.62 ·$0.63/h   agt 3·~$1.94 (46%)   +5   4m 9s
 ```
 
 ---
@@ -32,7 +32,7 @@ ctx ███░░░░░░░ 68k/1.0M   5h ░░░░ 6% (2h13m)   wk �
 - **Git** — branch (or short SHA when detached), a **worktree marker** detected from git, and `↑ahead ↓behind +staged ✎modified …untracked`. A clean repo shows a single `✓`.
 
 **Line 2 — telemetry** (green → rust → red ramp)
-- **Context** — a bar scaled to the full context window plus `used / total` tokens.
+- **Context** — a bar scaled to the full context window plus `used / total` tokens. The color is a **gradient keyed on absolute tokens, not % of window**: pure green through the ~100k "smart zone," then each cell warms green → rust → red as it reaches into the "dumb zone," hitting full red by 400k. On a 1M window this is the point — 600k tokens is only 60% (looks fine on a percentage bar) but is deep in degraded territory, and the gradient shows it.
 - **Usage caps** — rolling **5-hour** and **weekly** limits, each with a reset countdown in parentheses (Pro/Max plans; hidden on pay-as-you-go API billing).
 - **Cost** — the model-aware session estimate, colored by size, with a `·$/h` burn rate.
 - **Agent spend** — cost of Task/Agent **subagents** this session (`agt 3·~$1.94 (46%)`): subagent count, their summed cost, and the share of total spend they account for. Subagents run in their own context window, so this money never shows up in the context gauge — this segment is what explains a climbing bill next to a flat `ctx`. Appears only when the session has spawned subagents.
@@ -98,7 +98,7 @@ Runs on **macOS** and **Linux**, in any terminal. Set the terminal font to the i
 
 | Piece | Example | Notes |
 |---|---|---|
-| Context | `ctx ███░░░░░░░ 68k/1.0M` | Bar scaled to the full window; colored by % used. Shows `ctx —` until the CLI reports usage. |
+| Context | `ctx ███░░░░░░░ 68k/1.0M` | Bar scaled to the full window; colored by an **absolute-token gradient** (green ≤100k, ramping to red by 400k), so it flags the "dumb zone" even when % of window is low. Shows `ctx —` until the CLI reports usage. |
 | 5h / weekly caps | `5h ░░░░ 6% (2h13m)` | Usage against your rolling caps + time to reset. Pro/Max only. |
 | Cost | `~$2.62 ·$0.63/h` | Model-aware estimate (`~` = estimate) + burn rate. |
 | Agent spend | `agt 3·~$1.94 (46%)` | Subagent count · their summed cost · % of session spend. Priced per each subagent's own model. Hidden until the session spawns a subagent. |
@@ -128,11 +128,15 @@ Everything is at the top of [`statusline.sh`](statusline.sh), commented.
 **Thresholds** — the color flip points:
 
 ```sh
-CTX_WARN_PCT=70    # context + caps: sage -> rust at this % of the window/cap
-CTX_DANGER_PCT=90  # ...             rust -> red  at this %
+CTX_WARN_PCT=70    # caps: sage -> rust at this % of the cap
+CTX_DANGER_PCT=90  # caps: rust -> red  at this %
+CTX_GOOD_TOK=100000  # context: pure green up to here (end of the "smart zone")
+CTX_RED_TOK=400000   # context: full red by here, then clamped (the "dumb zone")
 COST_WARN=5        # session cost:   sage -> rust at this many dollars
 COST_DANGER=20     # ...             rust -> red  at this many dollars
 ```
+
+The 5h/weekly cap bars use the two `_PCT` zone thresholds (a flat three-color flip). The **context** bar is a smooth per-cell gradient driven by the two `_TOK` values — raise `CTX_GOOD_TOK` if your model holds quality further, or lower `CTX_RED_TOK` to warn harder, sooner.
 
 **Palette** — the `# palette` block holds every color as an `R;G;B` triple. The ramp is `SAGE → RUST → RED`.
 
