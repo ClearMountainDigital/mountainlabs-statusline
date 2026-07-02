@@ -109,15 +109,15 @@ Runs on **macOS** and **Linux**, in any terminal. Set the terminal font to the i
 
 ## Palette — MountainLabs.ai
 
-Identity segments use brand hues. Every gauge shares one ramp: **forest → rust → red = safe → warning → danger.**
+Identity segments use brand hues. Every gauge shares one ramp: **sage → rust → red = safe → warning → danger.** Accent foregrounds are tuned for contrast — they must stay legible both on the mid-tone line-1 segment backgrounds (WCAG 1.4.11 UI ≥ 3.0) and on a dark terminal (AA ≥ 4.5), so they run brighter than the raw brand swatches.
 
 | Role | Hex | | Role | Hex |
 |---|---|---|---|---|
-| Foreground | `#F2F2F2` | | Gauge · safe | `#6E9678` sage |
-| Model segment · slate | `#495B6C` | | Gauge · warning | `#8C4820` rust |
-| Folder segment · stone | `#716A56` | | Gauge · danger | `#AD0000` red |
+| Foreground | `#F2F2F2` | | Gauge · safe | `#96C8A5` sage |
+| Model segment · slate | `#495B6C` | | Gauge · warning | `#E28A4A` rust |
+| Folder segment · stone | `#716A56` | | Gauge · danger | `#EE6C64` red |
 | Git segment · forest | `#3F5147` | | Accent · ahead | `#96B4CD` sky |
-| Base / background | `#26140A` | | Accent · behind | `#C98E47` amber |
+| Base / background | `#26140A` | | Accent · behind | `#D0AA68` amber |
 
 ---
 

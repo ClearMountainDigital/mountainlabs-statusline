@@ -8,7 +8,7 @@
   <rect x="10" y="10" width="880" height="280" rx="12" fill="#1c0f08" stroke="#3a2418" stroke-width="1" filter="url(#shadow)"/>
 
   <!-- title bar -->
-  <circle cx="36" cy="36" r="6" fill="#ad0000"/>
+  <circle cx="36" cy="36" r="6" fill="#e13a2a"/>
   <circle cx="56" cy="36" r="6" fill="#c08a4e"/>
   <circle cx="76" cy="36" r="6" fill="#6fa36b"/>
   <text x="450" y="41" text-anchor="middle" font-size="13" fill="#78766f"><tspan fill="#8c4820">▲</tspan> mountainlabs ghostty theme</text>
@@ -39,21 +39,21 @@
   <!-- normal row -->
   <g>
     <rect x="40"  y="148" width="88" height="34" rx="5" fill="#2b1810"/>
-    <rect x="142" y="148" width="88" height="34" rx="5" fill="#ad0000"/>
+    <rect x="142" y="148" width="88" height="34" rx="5" fill="#e13a2a"/>
     <rect x="244" y="148" width="88" height="34" rx="5" fill="#6fa36b"/>
     <rect x="346" y="148" width="88" height="34" rx="5" fill="#c08a4e"/>
     <rect x="448" y="148" width="88" height="34" rx="5" fill="#6b84a0"/>
-    <rect x="550" y="148" width="88" height="34" rx="5" fill="#9e7182"/>
+    <rect x="550" y="148" width="88" height="34" rx="5" fill="#ad8092"/>
     <rect x="652" y="148" width="88" height="34" rx="5" fill="#6ba39b"/>
     <rect x="754" y="148" width="88" height="34" rx="5" fill="#c9c4bc"/>
   </g>
   <g font-size="10" fill="#8f8a82" text-anchor="middle">
     <text x="84"  y="197">2B1810</text>
-    <text x="186" y="197">AD0000</text>
+    <text x="186" y="197">E13A2A</text>
     <text x="288" y="197">6FA36B</text>
     <text x="390" y="197">C08A4E</text>
     <text x="492" y="197">6B84A0</text>
-    <text x="594" y="197">9E7182</text>
+    <text x="594" y="197">AD8092</text>
     <text x="696" y="197">6BA39B</text>
     <text x="798" y="197">C9C4BC</text>
   </g>
@@ -61,7 +61,7 @@
   <!-- bright row -->
   <g>
     <rect x="40"  y="210" width="88" height="34" rx="5" fill="#7c7768"/>
-    <rect x="142" y="210" width="88" height="34" rx="5" fill="#d93a2b"/>
+    <rect x="142" y="210" width="88" height="34" rx="5" fill="#ee6c64"/>
     <rect x="244" y="210" width="88" height="34" rx="5" fill="#8fbe7e"/>
     <rect x="346" y="210" width="88" height="34" rx="5" fill="#e0a860"/>
     <rect x="448" y="210" width="88" height="34" rx="5" fill="#8aa6c4"/>
@@ -71,7 +71,7 @@
   </g>
   <g font-size="10" fill="#8f8a82" text-anchor="middle">
     <text x="84"  y="259">7C7768</text>
-    <text x="186" y="259">D93A2B</text>
+    <text x="186" y="259">EE6C64</text>
     <text x="288" y="259">8FBE7E</text>
     <text x="390" y="259">E0A860</text>
     <text x="492" y="259">8AA6C4</text>

@@ -27,6 +27,15 @@ All notable changes to this project are documented here. Format loosely follows
   degradation on large windows where a percentage bar can't — 600k on a 1M window
   is only 60% but is deep in the "dumb zone." The 5h/weekly cap bars are unchanged
   (still the three-zone `_PCT` flip).
+- **Accent palette re-tuned for contrast (a11y pass).** The old muted accents
+  (`rust #8C4820`, `red #AD0000`, `sage #6E9678`, `dim`) were nearly unreadable
+  as text/glyphs — the git status counts on the forest segment and the cost figure
+  on a dark terminal both fell below WCAG minimums (e.g. `✎modified` measured a
+  1.2:1 ratio). Brightened to `sage #96C8A5`, `rust #E28A4A`, `red #EE6C64`,
+  `amber #D0AA68`, `dim #9E9E96`. Every informational element now clears its target
+  — line-2 telemetry at AA (≥ 4.5:1) on the dark background, line-1 git counts and
+  glyphs at the UI-component threshold (≥ 3.0:1) on their segment backgrounds. Hues
+  are unchanged, so the sage → rust → red semantics and brand feel carry over.
 
 ### Fixed
 - **Gauges never show an empty bar next to a live number.** Both the context bar

@@ -53,11 +53,14 @@ COST_DANGER=20     # ...             rust -> red  at this many dollars
 
 # --------------------------------------------------------------- palette ----
 # MountainLabs.ai / Clear Mountain Provisions
+# Accent hues are tuned for contrast: FOREST/STONE/SLATE are line-1 segment
+# BACKGROUNDS; the rest are FOREGROUNDS that must stay legible both on those
+# mid-tone backgrounds (WCAG 1.4.11 UI ≥3.0) and on a dark terminal (AA ≥4.5).
 CREAM='242;242;242'; DARKB='38;20;10'
-FOREST='63;81;71';  RUST='140;72;32'; STONE='113;106;86'
-SLATE='73;91;108';  RED='173;0;0';    SAGE='110;150;120'
-DIM='120;120;115'
-SKY='150;180;205';  AMBER='201;142;71'; TRACK='64;64;60'   # readable accents + bar track
+FOREST='63;81;71';  RUST='226;138;74'; STONE='113;106;86'
+SLATE='73;91;108';  RED='238;108;100';  SAGE='150;200;165'
+DIM='158;158;150'
+SKY='150;180;205';  AMBER='208;170;104'; TRACK='64;64;60'   # readable accents + bar track
 
 fg(){ printf '\033[38;2;%sm' "$1"; }
 bg(){ printf '\033[48;2;%sm' "$1"; }
