@@ -12,7 +12,13 @@
 set -euo pipefail
 
 REPO="ClearMountainDigital/mountainlabs-statusline"
-RAW="https://raw.githubusercontent.com/$REPO/main"
+# Pin downloads to a released tag so the installer and the script it fetches move
+# together — a given installer version lands a matching, checksum-verified script.
+# Override to another version or bleeding-edge main via env:
+#   MOUNTAINLABS_STATUSLINE_REF=main ./install.sh
+# The release step bumps this default in lockstep with the tag (see RELEASING.md).
+REF="${MOUNTAINLABS_STATUSLINE_REF:-v1.1.0}"
+RAW="https://raw.githubusercontent.com/$REPO/$REF"
 CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 DEST="$CLAUDE_DIR/statusline.sh"
 SETTINGS="$CLAUDE_DIR/settings.json"
@@ -22,6 +28,32 @@ FOREST='63;81;71'; RUST='140;72;32'; SAGE='110;150;120'; DIM='120;120;115'
 say(){ printf '%s %s\n' "$(c "$FOREST" '▲')" "$1"; }
 ok(){  printf '%s %s\n' "$(c "$SAGE" '✓')" "$1"; }
 warn(){ printf '%s %s\n' "$(c "$RUST" '!')" "$1"; }
+
+# sha256 of a file via whichever tool is present (BSD shasum on macOS, GNU
+# sha256sum on Linux). Prints the bare hash, or returns non-zero if neither exists.
+sha256(){
+  if   command -v shasum   >/dev/null 2>&1; then shasum -a 256 "$1" | awk '{print $1}'
+  elif command -v sha256sum >/dev/null 2>&1; then sha256sum   "$1" | awk '{print $1}'
+  else return 127; fi
+}
+
+# Abort the install unless $DEST matches the statusline.sh hash in checksums file $1.
+# A missing entry or absent sha256 tool downgrades to a warning (can't verify, but
+# don't block); only a genuine mismatch is fatal.
+verify(){
+  local sums="$1" want have
+  want="$(awk '$2 ~ /^\*?statusline\.sh$/ {print $1; exit}' "$sums" 2>/dev/null)"
+  [ -n "$want" ] || { warn "No statusline.sh entry in checksums — skipping integrity check."; return 0; }
+  have="$(sha256 "$DEST")" || { warn "No sha256 tool (shasum/sha256sum) — skipping integrity check."; return 0; }
+  if [ "$want" != "$have" ]; then
+    warn "Checksum mismatch for $DEST"
+    echo "   expected $want"
+    echo "   got      $have"
+    echo "   Refusing to install a script that doesn't match its published checksum."
+    exit 1
+  fi
+  ok "Verified checksum (sha256)"
+}
 
 printf '\n%s\n\n' "$(c "$RUST" 'MountainLabs statusline')"
 
@@ -37,15 +69,28 @@ fi
 mkdir -p "$CLAUDE_DIR"
 
 # --- install the script -----------------------------------------------------
+# Prefer local files (a clone); fall back to fetching the pinned ref. Either way,
+# we grab a matching checksums.txt and verify before trusting the script.
+tmp_sums=""
 SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || true)"
 if [ -n "$SRC_DIR" ] && [ -f "$SRC_DIR/statusline.sh" ]; then
   cp "$SRC_DIR/statusline.sh" "$DEST"
   say "Installed script from clone → $DEST"
+  sums_src="$SRC_DIR/checksums.txt"
 else
   curl -fsSL "$RAW/statusline.sh" -o "$DEST"
-  say "Downloaded script → $DEST"
+  say "Downloaded script ($REF) → $DEST"
+  tmp_sums="$(mktemp)"
+  if curl -fsSL "$RAW/checksums.txt" -o "$tmp_sums" 2>/dev/null; then sums_src="$tmp_sums"; else sums_src=""; fi
 fi
 chmod +x "$DEST"
+
+if [ -n "$sums_src" ] && [ -f "$sums_src" ]; then
+  verify "$sums_src"
+else
+  warn "No checksums.txt available for $REF — could not verify integrity."
+fi
+[ -n "$tmp_sums" ] && rm -f "$tmp_sums"
 
 # --- wire up settings.json --------------------------------------------------
 if command -v jq >/dev/null 2>&1; then
