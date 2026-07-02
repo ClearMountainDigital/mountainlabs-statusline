@@ -1,0 +1,2 @@
+ Sonnet 4.6    feature-wt    feature  my-project ✓ 
+ctx ██░░░░░░░░ 30k/200k   ~$0.20 ·$12.00/h   1m 0s

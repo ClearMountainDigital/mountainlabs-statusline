@@ -1,0 +1,10 @@
+{
+  "model": { "display_name": "Opus 4.8 (1M context)" },
+  "effort": { "level": "high" },
+  "context_window": { "used_percentage": 6.8, "total_input_tokens": 68000, "context_window_size": 1000000 },
+  "rate_limits": {
+    "five_hour": { "used_percentage": 6, "resets_at": 1767233580 },
+    "seven_day": { "used_percentage": 1, "resets_at": 1767524400 }
+  },
+  "cost": { "total_cost_usd": 2.62, "total_duration_ms": 249000, "total_lines_added": 5, "total_lines_removed": 0 }
+}
