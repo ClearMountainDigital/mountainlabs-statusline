@@ -81,6 +81,8 @@ Set your terminal font to a [Nerd Font](https://www.nerdfonts.com/) so the glyph
 
 Runs on **macOS** and **Linux**, in any terminal. Set the terminal font to the installed Nerd Font (e.g. `JetBrainsMono Nerd Font`).
 
+**Supported shells:** the script targets **bash 3.2** — the version macOS still ships — and portable BSD + GNU utilities (`awk`, `sed`, `date`, `stat`). It runs fine under newer bash too. If you're contributing, the shell floor and how to test are in [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
 ---
 
 ## Anatomy

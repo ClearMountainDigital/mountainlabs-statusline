@@ -1,0 +1,58 @@
+name: Bug report
+description: Something renders wrong, errors out, or behaves unexpectedly.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. The statusline reads JSON on stdin and prints two lines,
+        so a copy of the payload it choked on is usually enough to reproduce.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw versus what you expected. Paste the rendered line(s) if you can.
+      placeholder: The git segment shows a blank branch when the repo is in a detached HEAD…
+    validations:
+      required: true
+  - type: textarea
+    id: payload
+    attributes:
+      label: Reproducing payload
+      description: >
+        The stdin JSON that triggers it, if you have it. Redact anything private
+        (paths, session ids). This is rendered as code, no need for backticks.
+      render: json
+    validations:
+      required: false
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: macOS 15.5 / Ubuntu 24.04 / …
+    validations:
+      required: true
+  - type: input
+    id: bash
+    attributes:
+      label: bash version
+      description: Output of `bash --version` (first line).
+      placeholder: GNU bash, version 3.2.57(1)-release (arm64-apple-darwin24)
+    validations:
+      required: true
+  - type: input
+    id: terminal
+    attributes:
+      label: Terminal and font
+      placeholder: Ghostty + JetBrainsMono Nerd Font
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before filing
+      options:
+        - label: I'm on the latest version and re-ran the installer if needed.
+          required: false
+        - label: I have `jq`, `git`, `awk`, and a Nerd Font installed (see the README Requirements).
+          required: false
