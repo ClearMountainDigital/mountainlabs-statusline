@@ -171,6 +171,18 @@ mk_agent_transcript(){
   echo "$base"
 }
 
+mk_agent_transcript_fable(){
+  # Locks the Fable 5 / Mythos 5 rate ($10 in / $50 out per MTok). One assistant
+  # line at 1M in + 1M out prices to exactly $10 + $50 = $60.00, so the golden is
+  # a clean check that agent_spend's `fable|mythos` branch is hit and not shadowed
+  # by the opus/sonnet branches below it.
+  local base="$TMPROOT/agent-spend-fable/session.jsonl"
+  local sub="$TMPROOT/agent-spend-fable/session/subagents"
+  mkdir -p "$sub"
+  printf '%s\n' '{"type":"assistant","message":{"model":"claude-fable-5","usage":{"input_tokens":1000000,"output_tokens":1000000}}}' > "$sub/agent-1.jsonl"
+  echo "$base"
+}
+
 # ---- payload assembly ------------------------------------------------------
 build_payload(){  # $1 fixture name -> final JSON on stdout
   local name="$1" base ws tp
@@ -186,6 +198,11 @@ build_payload(){  # $1 fixture name -> final JSON on stdout
     agent-spend)
         ws="$TMPROOT/agent-spend"; mkdir -p "$ws"
         tp="$(mk_agent_transcript)"
+        base="$(printf '%s' "$base" | jq --arg tp "$tp" '.transcript_path=$tp')"
+        ;;
+    agent-spend-fable)
+        ws="$TMPROOT/agent-spend-fable"; mkdir -p "$ws"
+        tp="$(mk_agent_transcript_fable)"
         base="$(printf '%s' "$base" | jq --arg tp "$tp" '.transcript_path=$tp')"
         ;;
     *)             ws="$TMPROOT/$name"; mkdir -p "$ws" ;;

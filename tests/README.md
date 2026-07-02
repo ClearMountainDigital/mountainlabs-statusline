@@ -67,6 +67,7 @@ default on essentially every git build.
 | `empty` | Empty `{}` payload — graceful degradation (`Claude`, `ctx —`, no git) |
 | `no-git` | Folder segment present, git segment absent |
 | `model-1m` | 1M-context `∞` glyph + `high ▲`; mirrors the README example |
+| `model-fable` | Fable 5 name + `high ▲`; 1M window **without** `∞` (1M is Fable's default, name lacks the suffix) |
 | `model-standard` | Standard model name |
 | `effort-high` / `-xhigh` / `-max` | Effort glyphs `▲` / `▲▲` / `◆◆◆` |
 | `effort-medium` | Effort text with **no** glyph (low/medium branch) |
@@ -74,6 +75,7 @@ default on essentially every git build.
 | `caps-absent` | No `rate_limits` (API billing); cost in the danger zone |
 | `context-dumb-zone` | 620k/1.0M — token gradient warmed into the "dumb zone" |
 | `agent-spend` | Subagent transcript → `agt N·~$X (Y%)` segment |
+| `agent-spend-fable` | Fable 5 subagent (1M in + 1M out) → `~$60.00`; locks the `fable\|mythos` rate ($10/$50 per MTok) |
 | `git-clean` | Clean repo → `✓` |
 | `git-dirty` | `↑1 ↓2 +1 ✎1 …1` (ahead/behind + staged/modified/untracked) |
 | `git-detached` | Detached HEAD → short SHA |

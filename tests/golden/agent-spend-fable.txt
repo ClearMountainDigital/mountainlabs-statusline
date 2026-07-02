@@ -1,0 +1,2 @@
+ Claude Fable 5    agent-spend-fable 
+ctx █░░░░░░░░░ 60k/1.0M   ~$120.00 ·$120.00/h   agt 1·~$60.00 (50%)   60m 0s

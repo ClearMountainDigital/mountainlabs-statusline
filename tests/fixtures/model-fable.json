@@ -1,0 +1,6 @@
+{
+  "model": { "display_name": "Claude Fable 5" },
+  "effort": { "level": "high" },
+  "context_window": { "used_percentage": 6.0, "total_input_tokens": 60000, "context_window_size": 1000000 },
+  "cost": { "total_cost_usd": 3.50, "total_duration_ms": 180000, "total_lines_added": 8, "total_lines_removed": 2 }
+}
