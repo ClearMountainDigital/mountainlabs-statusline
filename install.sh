@@ -79,7 +79,9 @@ mkdir -p "$CLAUDE_DIR"
 # Prefer local files (a clone); fall back to fetching the pinned ref. Either way,
 # we grab a matching checksums.txt and verify before trusting the script.
 tmp_sums=""
-SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || true)"
+# `|| SRC_DIR=""` (not `... && pwd || true` inside the subshell) keeps set -e
+# from aborting when the cd fails, without tripping shellcheck's SC2015.
+SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd)" || SRC_DIR=""
 if [ -n "$SRC_DIR" ] && [ -f "$SRC_DIR/statusline.sh" ]; then
   cp "$SRC_DIR/statusline.sh" "$DEST"
   say "Installed script from clone → $DEST"

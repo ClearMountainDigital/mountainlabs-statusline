@@ -32,12 +32,21 @@ export GIT_AUTHOR_NAME='MountainLabs Test' GIT_AUTHOR_EMAIL='test@mountainlabs.t
 export GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME" GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
 export GIT_AUTHOR_DATE='2026-01-01T00:00:00 +0000'
 export GIT_COMMITTER_DATE='2026-01-01T00:00:00 +0000'
-# ignore the developer's global/system git config so init.defaultBranch,
-# object format (sha1), gpgsign, aliases, etc. can't leak into the goldens
-export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
+# ignore the developer's global/system git config so object format (sha1),
+# gpgsign, aliases, etc. can't leak into the goldens
+export GIT_CONFIG_SYSTEM=/dev/null
 
 TMPROOT="$(mktemp -d "${TMPDIR:-/tmp}/mlsl-tests.XXXXXX")"
 trap 'rm -rf "$TMPROOT"' EXIT
+
+# Pin init.defaultBranch instead of nulling global config: with /dev/null we
+# inherited git's *compiled* default, which is `main` on some builds and
+# `master` on others. mk_repo_dirty clones a bare whose HEAD follows that
+# default, so `master` left the remote clone with a broken checkout (r1/r2
+# commits silently failed → no "behind" count). A controlled config file keeps
+# the isolation while making the branch name deterministic everywhere.
+export GIT_CONFIG_GLOBAL="$TMPROOT/gitconfig"
+printf '[init]\n\tdefaultBranch = main\n' > "$GIT_CONFIG_GLOBAL"
 # stop git from discovering any real repo above the temp workspaces
 export GIT_CEILING_DIRECTORIES="$TMPROOT"
 # isolate the agent-spend on-disk cache
