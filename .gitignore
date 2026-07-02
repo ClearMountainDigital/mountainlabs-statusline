@@ -10,3 +10,6 @@
 # local backups the installer writes
 *.bak
 *.bak-statusline
+
+# Claude Code project-level working folders (settings, worktrees, local state)
+.claude/

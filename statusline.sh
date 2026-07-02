@@ -73,9 +73,21 @@ SLATE='73;91;108';  RED='238;108;100';  SAGE='150;200;165'
 DIM='158;158;150'
 SKY='150;180;205';  AMBER='208;170;104'; TRACK='64;64;60'   # readable accents + bar track
 
-fg(){ printf '\033[38;2;%sm' "$1"; }
-bg(){ printf '\033[48;2;%sm' "$1"; }
-rs(){ printf '\033[0m'; }
+# Precompute the ANSI escapes once instead of forking a subshell per color.
+# `$(fg "$SAGE")` used to fork on every call — dozens per render, and once per
+# cell inside bar(). Here we build the escape strings at startup: RS is the
+# reset, and FG_<NAME> holds the truecolor foreground escape for each palette
+# entry used as a foreground. The three segment BACKGROUNDS (FOREST/STONE/SLATE)
+# stay as raw triplets and are built inline as "${ESC}[48;2;${rgb}m"; dynamic
+# foregrounds (gradient/threshold results) likewise as "${ESC}[38;2;${rgb}m".
+# Bytes are identical to the old functions — the golden tests strip ANSI, so a
+# raw capture guards the escape sequences (see issue #0005).
+ESC=$'\033'
+RS="${ESC}[0m"
+FG_CREAM="${ESC}[38;2;${CREAM}m"; FG_SAGE="${ESC}[38;2;${SAGE}m"
+FG_RUST="${ESC}[38;2;${RUST}m";   FG_RED="${ESC}[38;2;${RED}m"
+FG_DIM="${ESC}[38;2;${DIM}m";     FG_SKY="${ESC}[38;2;${SKY}m"
+FG_AMBER="${ESC}[38;2;${AMBER}m"; FG_TRACK="${ESC}[38;2;${TRACK}m"
 SEP=$''   # powerline right-facing separator
 GBR=$''   # git branch glyph
 FLD=$''   # folder glyph
@@ -156,10 +168,11 @@ agent_spend(){ # $1 subagents dir  $2 cache file
 
 bar(){ # $1 fill(0..width) $2 width $3 fill-color
   local f=$1 w=$2 c=$3 i out=""
+  local fillc="${ESC}[38;2;${c}m"   # escapes built once, not per cell
   for((i=0;i<w;i++)); do
-    if (( i<f )); then out+="$(fg "$c")█"; else out+="$(fg "$TRACK")░"; fi
+    if (( i<f )); then out+="${fillc}█"; else out+="${FG_TRACK}░"; fi
   done
-  printf '%s%s' "$out" "$(rs)"; }
+  printf '%s%s' "$out" "$RS"; }
 
 # ramp color for an absolute token count -> "R;G;B": pure sage <= CTX_GOOD_TOK,
 # then sage->rust->red across [CTX_GOOD_TOK, CTX_RED_TOK], clamped to red beyond.
@@ -192,14 +205,14 @@ bar_grad(){ # $1 fill(0..width) $2 width $3 scale-tokens (context window size)
 
 # ============================================================ LINE 1 ========
 model_txt="${MODEL}"
-[ -n "$HAS_1M" ] && model_txt="${model_txt} $(fg "$SKY")∞$(fg "$CREAM")"
+[ -n "$HAS_1M" ] && model_txt="${model_txt} ${FG_SKY}∞${FG_CREAM}"
 [ -n "$EFFORT" ] && model_txt="${model_txt}·${EFFORT}"
 case "$EFFORT" in
-  high)  model_txt="${model_txt} $(fg "$SAGE")▲$(fg "$CREAM")" ;;
-  xhigh) model_txt="${model_txt} $(fg "$RUST")▲▲$(fg "$CREAM")" ;;
-  max)   model_txt="${model_txt} $(fg "$RED")◆◆◆$(fg "$CREAM")" ;;
+  high)  model_txt="${model_txt} ${FG_SAGE}▲${FG_CREAM}" ;;
+  xhigh) model_txt="${model_txt} ${FG_RUST}▲▲${FG_CREAM}" ;;
+  max)   model_txt="${model_txt} ${FG_RED}◆◆◆${FG_CREAM}" ;;
 esac
-[ -n "$FAST" ] && model_txt="${model_txt} $(fg "$RUST")⚡$(fg "$CREAM")"
+[ -n "$FAST" ] && model_txt="${model_txt} ${FG_RUST}⚡${FG_CREAM}"
 
 dir_txt="${FLD}  $(basename "${DIR:-?}")"
 
@@ -215,20 +228,20 @@ if [ -n "$DIR" ] && git -C "$DIR" rev-parse --git-dir >/dev/null 2>&1; then
     _cd="$(git -C "$DIR" rev-parse --git-common-dir 2>/dev/null)"
     [ -n "$_gd" ] && [ "$_gd" != "$_cd" ] && WT="$(basename "$(dirname "$_cd")")"
   fi
-  [ -n "$WT" ] && git_txt="${git_txt} $(fg "$DIM")${WTG} ${WT}$(fg "$CREAM")"
+  [ -n "$WT" ] && git_txt="${git_txt} ${FG_DIM}${WTG} ${WT}${FG_CREAM}"
   ab="$(git -C "$DIR" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)"
   behind="$(printf '%s' "$ab" | awk '{print $1+0}')"
   ahead="$(printf '%s' "$ab" | awk '{print $2+0}')"
   staged="$(git -C "$DIR" diff --cached --numstat 2>/dev/null | grep -c '')"
   modified="$(git -C "$DIR" diff --numstat 2>/dev/null | grep -c '')"
   untracked="$(git -C "$DIR" ls-files --others --exclude-standard 2>/dev/null | grep -c '')"
-  [ "${ahead:-0}" -gt 0 ]     && git_txt="${git_txt} $(fg "$SKY")↑${ahead}$(fg "$CREAM")"
-  [ "${behind:-0}" -gt 0 ]    && git_txt="${git_txt} $(fg "$AMBER")↓${behind}$(fg "$CREAM")"
-  [ "${staged:-0}" -gt 0 ]    && git_txt="${git_txt} $(fg "$SAGE")+${staged}$(fg "$CREAM")"
-  [ "${modified:-0}" -gt 0 ]  && git_txt="${git_txt} $(fg "$RUST")✎${modified}$(fg "$CREAM")"
-  [ "${untracked:-0}" -gt 0 ] && git_txt="${git_txt} $(fg "$DIM")…${untracked}$(fg "$CREAM")"
+  [ "${ahead:-0}" -gt 0 ]     && git_txt="${git_txt} ${FG_SKY}↑${ahead}${FG_CREAM}"
+  [ "${behind:-0}" -gt 0 ]    && git_txt="${git_txt} ${FG_AMBER}↓${behind}${FG_CREAM}"
+  [ "${staged:-0}" -gt 0 ]    && git_txt="${git_txt} ${FG_SAGE}+${staged}${FG_CREAM}"
+  [ "${modified:-0}" -gt 0 ]  && git_txt="${git_txt} ${FG_RUST}✎${modified}${FG_CREAM}"
+  [ "${untracked:-0}" -gt 0 ] && git_txt="${git_txt} ${FG_DIM}…${untracked}${FG_CREAM}"
   if [ "${ahead:-0}${behind:-0}${staged:-0}${modified:-0}${untracked:-0}" = "00000" ]; then
-    git_txt="${git_txt} $(fg "$SAGE")✓$(fg "$CREAM")"
+    git_txt="${git_txt} ${FG_SAGE}✓${FG_CREAM}"
   fi
 fi
 
@@ -238,11 +251,11 @@ if [ -n "$git_txt" ]; then seg_txt+=("$git_txt"); seg_bg+=("$FOREST"); fi
 line1=""; n=${#seg_txt[@]}
 for ((i=0;i<n;i++)); do
   b="${seg_bg[i]}"
-  line1+="$(bg "$b")$(fg "$CREAM") ${seg_txt[i]} "
+  line1+="${ESC}[48;2;${b}m${FG_CREAM} ${seg_txt[i]} "
   if ((i<n-1)); then
-    line1+="$(bg "${seg_bg[i+1]}")$(fg "$b")${SEP}"
+    line1+="${ESC}[48;2;${seg_bg[i+1]}m${ESC}[38;2;${b}m${SEP}"
   else
-    line1+="$(rs)$(fg "$b")${SEP}$(rs)"
+    line1+="${RS}${ESC}[38;2;${b}m${SEP}${RS}"
   fi
 done
 
@@ -255,9 +268,9 @@ if [ -n "$CTX_PCT" ]; then
   # floor: any nonzero usage shows at least a 1-cell sliver (never an empty bar next to a live number)
   [ "$fill" -lt 1 ] && [ "${IN_TOK:-0}" -gt 0 ] && fill=1
   col="$(grad_color "$IN_TOK")"
-  ctx="$(fg "$DIM")ctx$(rs) $(bar_grad "$fill" 10 "$CTX_SIZE") $(fg "$col")$(fmt_tokens "$IN_TOK")$(fg "$DIM")/$(fmt_tokens "$CTX_SIZE")$(rs)"
+  ctx="${FG_DIM}ctx${RS} $(bar_grad "$fill" 10 "$CTX_SIZE") ${ESC}[38;2;${col}m$(fmt_tokens "$IN_TOK")${FG_DIM}/$(fmt_tokens "$CTX_SIZE")${RS}"
 else
-  ctx="$(fg "$DIM")ctx —$(rs)"
+  ctx="${FG_DIM}ctx —${RS}"
 fi
 
 # same 1-cell floor as the context bar: a live percentage never shows an empty gauge
@@ -265,19 +278,19 @@ cap_fill(){ f=$(( (${1%.*} * 4 + 50) / 100 )); [ "$f" -lt 1 ] && [ "${1%.*}" -gt
 caps=""
 if [ -n "$FIVE_H" ]; then
   c="$(pct_color "$FIVE_H")"
-  caps+="   $(fg "$DIM")5h$(rs) $(bar "$(cap_fill "$FIVE_H")" 4 "$c") $(fg "$c")${FIVE_H%.*}%$(rs)"
-  [ -n "$FIVE_RESET" ] && caps+="$(fg "$DIM") ($(until_reset "$FIVE_RESET"))$(rs)"
+  caps+="   ${FG_DIM}5h${RS} $(bar "$(cap_fill "$FIVE_H")" 4 "$c") ${ESC}[38;2;${c}m${FIVE_H%.*}%${RS}"
+  [ -n "$FIVE_RESET" ] && caps+="${FG_DIM} ($(until_reset "$FIVE_RESET"))${RS}"
 fi
 if [ -n "$SEVEN_D" ]; then
   c="$(pct_color "$SEVEN_D")"
-  caps+="   $(fg "$DIM")wk$(rs) $(bar "$(cap_fill "$SEVEN_D")" 4 "$c") $(fg "$c")${SEVEN_D%.*}%$(rs)"
-  [ -n "$SEVEN_RESET" ] && caps+="$(fg "$DIM") ($(until_reset "$SEVEN_RESET"))$(rs)"
+  caps+="   ${FG_DIM}wk${RS} $(bar "$(cap_fill "$SEVEN_D")" 4 "$c") ${ESC}[38;2;${c}m${SEVEN_D%.*}%${RS}"
+  [ -n "$SEVEN_RESET" ] && caps+="${FG_DIM} ($(until_reset "$SEVEN_RESET"))${RS}"
 fi
 
-cost="   $(fg "$(cost_col "$COST")")$(printf '~$%.2f' "$COST")$(rs)"
+cost="   ${ESC}[38;2;$(cost_col "$COST")m$(printf '~$%.2f' "$COST")${RS}"
 if [ "${DUR_MS:-0}" -gt 0 ]; then
   rate="$(awk -v c="$COST" -v ms="$DUR_MS" 'BEGIN{ printf "%.2f", c/(ms/3600000) }')"
-  cost+="$(fg "$DIM") ·\$${rate}/h$(rs)"
+  cost+="${FG_DIM} ·\$${rate}/h${RS}"
 fi
 
 # agent spend — cost of Task/Agent subagents this session. It lives here next to
@@ -290,11 +303,11 @@ if [ -n "$TRANSCRIPT" ]; then
     _cache="${XDG_CACHE_HOME:-$HOME/.cache}/mountainlabs-statusline/${SESSION:-default}.agents"
     read -r acount acost < <(agent_spend "$_subdir" "$_cache")
     if [ "${acount:-0}" -gt 0 ]; then
-      acol="$(cost_col "$acost")"
-      agents="   $(fg "$DIM")agt$(rs) $(fg "$acol")${acount}$(fg "$DIM")·$(fg "$acol")$(printf '~$%.2f' "$acost")$(rs)"
+      acol="${ESC}[38;2;$(cost_col "$acost")m"
+      agents="   ${FG_DIM}agt${RS} ${acol}${acount}${FG_DIM}·${acol}$(printf '~$%.2f' "$acost")${RS}"
       # share of total session spend the agents account for — the "invisible" cost
       pctspend="$(awk -v a="$acost" -v c="$COST" 'BEGIN{ if(c+0>0){p=a/c*100; if(p>100)p=100; printf "%d",p+0.5} else print 0 }')"
-      [ "${pctspend:-0}" -gt 0 ] && agents+="$(fg "$DIM") (${pctspend}%)$(rs)"
+      [ "${pctspend:-0}" -gt 0 ] && agents+="${FG_DIM} (${pctspend}%)${RS}"
     fi
   fi
 fi
@@ -302,13 +315,13 @@ fi
 churn=""
 if [ "${ADDED:-0}" -gt 0 ] || [ "${REMOVED:-0}" -gt 0 ]; then
   churn="   "
-  [ "${ADDED:-0}" -gt 0 ]   && churn+="$(fg "$SAGE")+${ADDED}$(rs) "
-  [ "${REMOVED:-0}" -gt 0 ] && churn+="$(fg "$RED")−${REMOVED}$(rs) "
+  [ "${ADDED:-0}" -gt 0 ]   && churn+="${FG_SAGE}+${ADDED}${RS} "
+  [ "${REMOVED:-0}" -gt 0 ] && churn+="${FG_RED}−${REMOVED}${RS} "
   churn="${churn% }"
 fi
 
 secs=$(( DUR_MS / 1000 )); mins=$(( secs / 60 )); secs=$(( secs % 60 ))
-timer="   $(fg "$DIM")${mins}m ${secs}s$(rs)"
+timer="   ${FG_DIM}${mins}m ${secs}s${RS}"
 
 line2="${ctx}${caps}${cost}${agents}${churn}${timer}"
 
