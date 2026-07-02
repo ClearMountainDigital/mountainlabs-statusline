@@ -66,7 +66,7 @@ fi
 
 # --- done -------------------------------------------------------------------
 printf '\n%s\n' "$(c "$SAGE" 'Done.')"
-echo "$(c "$DIM" 'Next:')"
+c "$DIM" 'Next:'; printf '\n'
 echo "  1. Install a Nerd Font for the glyphs, e.g.  brew install --cask font-jetbrains-mono-nerd-font"
 echo "     then set your terminal font to it (JetBrainsMono Nerd Font)."
 echo "  2. Restart Claude Code (or start a new session) to see the bar."

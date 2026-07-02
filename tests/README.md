@@ -18,6 +18,16 @@ tests/run.sh --update git-dirty # regenerate one golden
 
 Dependencies: `bash`, `jq`, `git`, `awk`, `sed`. No network.
 
+## Linting
+
+```sh
+tests/lint.sh          # shellcheck over every shell script (needs shellcheck)
+```
+
+Run it before committing a shell change; CI runs the same command. The scripts are
+kept shellcheck-clean — any `# shellcheck disable=...` directive must carry a one-line
+justification.
+
 ## Workflow
 
 1. Change `statusline.sh`.

@@ -56,7 +56,7 @@ COST_DANGER=20     # ...             rust -> red  at this many dollars
 # Accent hues are tuned for contrast: FOREST/STONE/SLATE are line-1 segment
 # BACKGROUNDS; the rest are FOREGROUNDS that must stay legible both on those
 # mid-tone backgrounds (WCAG 1.4.11 UI ≥3.0) and on a dark terminal (AA ≥4.5).
-CREAM='242;242;242'; DARKB='38;20;10'
+CREAM='242;242;242'
 FOREST='63;81;71';  RUST='226;138;74'; STONE='113;106;86'
 SLATE='73;91;108';  RED='238;108;100';  SAGE='150;200;165'
 DIM='158;158;150'
@@ -107,14 +107,15 @@ _stat_ms(){ stat -f '%m %z' "$@" 2>/dev/null || stat -c '%Y %s' "$@" 2>/dev/null
 # Parsing is gated by a cheap file signature + on-disk cache so a busy session
 # doesn't re-parse every render — steady state is one stat() per file.
 agent_spend(){ # $1 subagents dir  $2 cache file
-  local dir="$1" cache="$2" sig cached_sig cached_val val n
+  local dir="$1" cache="$2" sig cached_sig cached_val val n; local files
   sig="$(_stat_ms "$dir"/*.jsonl 2>/dev/null | awk '{m=($1>m)?$1:m;s+=$2;n++}END{print n"-"m"-"s}')"
   case "$sig" in ''|0-*) printf '0 0'; return;; esac
   if [ -r "$cache" ]; then IFS='|' read -r cached_sig cached_val < "$cache"; fi
   if [ "$sig" = "$cached_sig" ] && [ -n "$cached_val" ]; then printf '%s' "$cached_val"; return; fi
-  n="$(ls "$dir"/*.jsonl 2>/dev/null | grep -c '')"
+  # the sig guard above guarantees at least one .jsonl, so the glob never stays literal
+  files=( "$dir"/*.jsonl ); n=${#files[@]}
   val="$(
-    for f in "$dir"/*.jsonl; do
+    for f in "${files[@]}"; do
       jq -rc 'select(.type=="assistant") | .message as $m | [
           ($m.model // "unknown"),
           ($m.usage.input_tokens // 0), ($m.usage.output_tokens // 0),
