@@ -80,3 +80,17 @@ default on essentially every git build.
 | `git-worktree` | Linked worktree → fork marker + parent repo name |
 | `git-rename` | Staged rename → porcelain-v2 type `2` (`R.`) entry → `+1` |
 | `git-untracked-dir` | Untracked directory of 3 files → `…3` (guards `--untracked-files=all`) |
+| `config-file-override` | Config file honored → `high cfg` (via `MOUNTAINLABS_STATUSLINE_CONFIG`) |
+| `config-env-precedence` | Env var beats the config file → `high env` (precedence env > file) |
+
+### Per-fixture overrides (`<name>.env`)
+
+An optional `fixtures/<name>.env` is sourced (exported) **only** for that fixture,
+so a case can exercise the update-safe config (#0007): environment variables and a
+config file (`MOUNTAINLABS_STATUSLINE_CONFIG`, resolved via the exported `$ROOT`).
+Absence is a plain run. The harness isolates `XDG_CONFIG_HOME` to a temp dir so a
+real `~/.config` file can never leak into a golden.
+
+Note: goldens strip ANSI, so only overrides that change **text** (e.g. an effort
+glyph) show up. Threshold/palette overrides change color only — verify those with a
+raw-bytes capture (see the note about issue #0005 above).

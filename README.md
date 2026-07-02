@@ -124,24 +124,47 @@ Identity segments use brand hues. Every gauge shares one ramp: **sage → rust �
 
 ## Customizing
 
-Everything is at the top of [`statusline.sh`](statusline.sh), commented.
+Tune it **without editing the script** — so an upgrade (which overwrites
+`statusline.sh` wholesale) never wipes your changes. Every tunable is overridable
+two ways, and precedence is **environment variable → config file → built-in
+default** (first one set wins).
 
-**Thresholds** — the color flip points:
+**Config file** (recommended — survives every upgrade). Copy the annotated
+[`examples/statusline.conf`](examples/statusline.conf) to:
 
 ```sh
-CTX_WARN_PCT=70    # caps: sage -> rust at this % of the cap
-CTX_DANGER_PCT=90  # caps: rust -> red  at this %
-CTX_GOOD_TOK=100000  # context: pure green up to here (end of the "smart zone")
-CTX_RED_TOK=400000   # context: full red by here, then clamped (the "dumb zone")
-COST_WARN=5        # session cost:   sage -> rust at this many dollars
-COST_DANGER=20     # ...             rust -> red  at this many dollars
+mkdir -p ~/.config/mountainlabs-statusline
+cp examples/statusline.conf ~/.config/mountainlabs-statusline/config
 ```
 
-The 5h/weekly cap bars use the two `_PCT` zone thresholds (a flat three-color flip). The **context** bar is a smooth per-cell gradient driven by the two `_TOK` values — raise `CTX_GOOD_TOK` if your model holds quality further, or lower `CTX_RED_TOK` to warn harder, sooner.
+Uncomment the lines you want. (Custom path: point `$MOUNTAINLABS_STATUSLINE_CONFIG`
+at any file.) It's sourced as shell, so keep it to plain `KEY=value` — and **quote
+any `R;G;B` value**, or the shell reads the `;` as a command separator:
 
-**Palette** — the `# palette` block holds every color as an `R;G;B` triple. The ramp is `SAGE → RUST → RED`.
+```sh
+CTX_RED_TOK=250000     # numbers: no quotes needed
+SAGE='120;180;140'     # R;G;B palette triples: MUST be quoted
+EFFORT_MAX='★'         # glyphs
+```
 
-**Effort flair** — edit the `case "$EFFORT"` block to change glyphs or colors per reasoning level.
+**Environment variable** — same names, handy for a one-off or a per-project
+`.claude` env. Beats the config file:
+
+```sh
+CTX_RED_TOK=250000 claude    # warn harder, sooner, just this run
+```
+
+**What you can tune:**
+
+- **Thresholds** — `CTX_WARN_PCT` / `CTX_DANGER_PCT` (the 5h/weekly cap bars' flat
+  three-color flip), `CTX_GOOD_TOK` / `CTX_RED_TOK` (the context bar's per-cell
+  gradient — raise `CTX_GOOD_TOK` if your model holds quality further, lower
+  `CTX_RED_TOK` to warn sooner), `COST_WARN` / `COST_DANGER` (dollar zones).
+- **Palette** — every color as an `R;G;B` triple; the ramp is `SAGE → RUST → RED`.
+- **Effort flair glyphs** — `EFFORT_HIGH` / `EFFORT_XHIGH` / `EFFORT_MAX`.
+
+See [`examples/statusline.conf`](examples/statusline.conf) for the full list with
+defaults.
 
 > [!TIP]
 > The documented payload doesn't expose a fast-mode field, so the `⚡` flag stays hidden until it appears. To show **thinking on/off** instead, read `.thinking.enabled` near the `FAST=` line and append a glyph to `model_txt` the way the effort flair does.

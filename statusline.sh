@@ -51,27 +51,61 @@ IFS=$'\037' read -r \
 # detect + strip a "(1M context)" suffix; mark it so line 1 shows a compact ∞ glyph
 HAS_1M=""; case "$MODEL" in *"(1M context)"*) HAS_1M=1; MODEL="${MODEL/ (1M context)/}";; esac
 
+# ---------------------------------------------------------------- config ----
+# Update-safe configuration (#0007). Every tunable below (thresholds, palette,
+# effort glyphs) is overridable, so re-installing or upgrading — which overwrites
+# this whole script — never clobbers a user's tweaks. Precedence, highest first:
+#   1. environment variable   e.g.  CTX_RED_TOK=250000
+#   2. config file            KEY=value lines, sourced as shell
+#   3. built-in default       the `: "${VAR:=...}"` fallbacks below
+# Config file: $MOUNTAINLABS_STATUSLINE_CONFIG if set, else
+#   ${XDG_CONFIG_HOME:-~/.config}/mountainlabs-statusline/config  (absent = no-op).
+# It's a plain KEY=value file you own — same trust as this script; keep it to
+# assignments (it's sourced). See examples/statusline.conf.
+_ml_config="${MOUNTAINLABS_STATUSLINE_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/mountainlabs-statusline/config}"
+if [ -r "$_ml_config" ]; then
+  # Snapshot any tunable already set in the environment so it outranks the file
+  # (env > file). printf %q keeps values re-eval-safe; only env-set names are
+  # captured, so with no env overrides this builds nothing and the eval is skipped.
+  _ml_snap=""
+  for _v in CTX_WARN_PCT CTX_DANGER_PCT CTX_GOOD_TOK CTX_RED_TOK COST_WARN COST_DANGER \
+            CREAM FOREST RUST STONE SLATE RED SAGE DIM SKY AMBER TRACK \
+            EFFORT_HIGH EFFORT_XHIGH EFFORT_MAX; do
+    [ -n "${!_v+x}" ] && _ml_snap+="$(printf '%s=%q; ' "$_v" "${!_v}")"
+  done
+  # shellcheck disable=SC1090  # user config path is intentionally dynamic
+  . "$_ml_config"
+  [ -n "$_ml_snap" ] && eval "$_ml_snap"   # re-apply env values so env beats file
+fi
+
 # -------------------------------------------------------------- tunables ----
+# Defaults only — each is overridable via env var or the config file above.
 # The 5h/weekly cap bars flip in three zones, as % of the cap:
-CTX_WARN_PCT=70    # caps: sage -> rust at this % of the cap
-CTX_DANGER_PCT=90  # caps: rust -> red  at this %
+: "${CTX_WARN_PCT:=70}"     # caps: sage -> rust at this % of the cap
+: "${CTX_DANGER_PCT:=90}"   # caps: rust -> red  at this %
 # The context bar is a smooth gradient keyed on ABSOLUTE tokens (not % of window):
 # quality degrades past ~100k regardless of a 1M window, so color follows tokens.
-CTX_GOOD_TOK=100000  # end of the "smart zone" — pure sage up to here
-CTX_RED_TOK=400000   # tokens at which the bar hits full red, then clamps (dumb zone)
-COST_WARN=5        # session cost:   sage -> rust at this many dollars
-COST_DANGER=20     # ...             rust -> red  at this many dollars
+: "${CTX_GOOD_TOK:=100000}" # end of the "smart zone" — pure sage up to here
+: "${CTX_RED_TOK:=400000}"  # tokens at which the bar hits full red, then clamps (dumb zone)
+: "${COST_WARN:=5}"         # session cost:   sage -> rust at this many dollars
+: "${COST_DANGER:=20}"      # ...             rust -> red  at this many dollars
 
 # --------------------------------------------------------------- palette ----
-# MountainLabs.ai / Clear Mountain Provisions
+# MountainLabs.ai / Clear Mountain Provisions. Defaults only — override any hue
+# via env var or config file (each an `R;G;B` triple).
 # Accent hues are tuned for contrast: FOREST/STONE/SLATE are line-1 segment
 # BACKGROUNDS; the rest are FOREGROUNDS that must stay legible both on those
 # mid-tone backgrounds (WCAG 1.4.11 UI ≥3.0) and on a dark terminal (AA ≥4.5).
-CREAM='242;242;242'
-FOREST='63;81;71';  RUST='226;138;74'; STONE='113;106;86'
-SLATE='73;91;108';  RED='238;108;100';  SAGE='150;200;165'
-DIM='158;158;150'
-SKY='150;180;205';  AMBER='208;170;104'; TRACK='64;64;60'   # readable accents + bar track
+: "${CREAM:=242;242;242}"
+: "${FOREST:=63;81;71}";  : "${RUST:=226;138;74}"; : "${STONE:=113;106;86}"
+: "${SLATE:=73;91;108}";  : "${RED:=238;108;100}";  : "${SAGE:=150;200;165}"
+: "${DIM:=158;158;150}"
+: "${SKY:=150;180;205}";  : "${AMBER:=208;170;104}"; : "${TRACK:=64;64;60}"   # readable accents + bar track
+
+# effort flair glyphs — overridable; their colors come from the palette above
+: "${EFFORT_HIGH:=▲}"
+: "${EFFORT_XHIGH:=▲▲}"
+: "${EFFORT_MAX:=◆◆◆}"
 
 # Precompute the ANSI escapes once instead of forking a subshell per color.
 # `$(fg "$SAGE")` used to fork on every call — dozens per render, and once per
@@ -208,9 +242,9 @@ model_txt="${MODEL}"
 [ -n "$HAS_1M" ] && model_txt="${model_txt} ${FG_SKY}∞${FG_CREAM}"
 [ -n "$EFFORT" ] && model_txt="${model_txt}·${EFFORT}"
 case "$EFFORT" in
-  high)  model_txt="${model_txt} ${FG_SAGE}▲${FG_CREAM}" ;;
-  xhigh) model_txt="${model_txt} ${FG_RUST}▲▲${FG_CREAM}" ;;
-  max)   model_txt="${model_txt} ${FG_RED}◆◆◆${FG_CREAM}" ;;
+  high)  model_txt="${model_txt} ${FG_SAGE}${EFFORT_HIGH}${FG_CREAM}" ;;
+  xhigh) model_txt="${model_txt} ${FG_RUST}${EFFORT_XHIGH}${FG_CREAM}" ;;
+  max)   model_txt="${model_txt} ${FG_RED}${EFFORT_MAX}${FG_CREAM}" ;;
 esac
 [ -n "$FAST" ] && model_txt="${model_txt} ${FG_RUST}⚡${FG_CREAM}"
 

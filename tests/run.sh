@@ -42,6 +42,12 @@ trap 'rm -rf "$TMPROOT"' EXIT
 export GIT_CEILING_DIRECTORIES="$TMPROOT"
 # isolate the agent-spend on-disk cache
 export XDG_CACHE_HOME="$TMPROOT/cache"
+# isolate user config (#0007) so a real ~/.config file can't leak into goldens;
+# per-fixture <name>.env files may point MOUNTAINLABS_STATUSLINE_CONFIG at a
+# committed sample conf, referenced via the exported $ROOT.
+export XDG_CONFIG_HOME="$TMPROOT/config"
+unset MOUNTAINLABS_STATUSLINE_CONFIG
+export ROOT
 
 # Freeze `date +%s` via a PATH shim so the 5h/weekly reset countdowns are stable.
 # statusline.sh calls `date` only as `date +%s`; anything else falls through.
@@ -194,7 +200,14 @@ for fx in "$FIXDIR"/*.json; do
   name="$(basename "$fx" .json)"
   [ -n "$ONLY" ] && [ "$ONLY" != "$name" ] && continue
   gold="$GOLDDIR/$name.txt"
-  out="$(build_payload "$name" | "$STATUSLINE" | strip_ansi)"
+  # An optional <name>.env is sourced (exported) only for that fixture, so a case
+  # can exercise env-var / config-file overrides (#0007). Absent = plain run.
+  envfile="$FIXDIR/$name.env"
+  out="$(build_payload "$name" | (
+    # shellcheck disable=SC1090  # per-fixture override file, path is dynamic
+    [ -f "$envfile" ] && { set -a; . "$envfile"; set +a; }
+    exec "$STATUSLINE"
+  ) | strip_ansi)"
 
   if [ "$UPDATE" = 1 ]; then
     printf '%s\n' "$out" > "$gold"
