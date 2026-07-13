@@ -9,6 +9,7 @@
 [![Shell: bash](https://img.shields.io/badge/shell-bash-8c4820.svg)](statusline.sh)
 [![Platform: macOS · Linux](https://img.shields.io/badge/platform-macOS%20%C2%B7%20Linux-716a56.svg)](#requirements)
 [![Made for Claude Code](https://img.shields.io/badge/made%20for-Claude%20Code-495b6c.svg)](https://claude.com/claude-code)
+[![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/ClearMountainDigital/mountainlabs-statusline?utm_source=oss&utm_medium=github&utm_campaign=ClearMountainDigital%2Fmountainlabs-statusline&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)](https://coderabbit.ai)
 
 ![MountainLabs statusline preview](assets/preview.svg)
 
