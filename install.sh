@@ -17,7 +17,7 @@ REPO="ClearMountainDigital/mountainlabs-statusline"
 # Override to another version or bleeding-edge main via env:
 #   MOUNTAINLABS_STATUSLINE_REF=main ./install.sh
 # The release step bumps this default in lockstep with the tag (see RELEASING.md).
-REF="${MOUNTAINLABS_STATUSLINE_REF:-v1.2.1}"
+REF="${MOUNTAINLABS_STATUSLINE_REF:-v1.3.0}"
 RAW="https://raw.githubusercontent.com/$REPO/$REF"
 CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 DEST="$CLAUDE_DIR/statusline.sh"

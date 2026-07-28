@@ -3,6 +3,27 @@
 All notable changes to this project are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/); versions follow [SemVer](https://semver.org/).
 
+## [1.3.0] — 2026-07-28
+
+Adds pricing support for **Claude Opus 5** (`claude-opus-5`), released June 2026 and now
+Anthropic's recommended model for agentic coding.
+
+### Fixed
+- **Opus 5 subagent spend is priced correctly.** The `agent_spend` rate table matched
+  the `$5/$25` Opus tier with `opus-4-(5|6|7|8)`, which does not match `claude-opus-5` —
+  so Opus 5 subagents fell through to the `opus` fallback and were billed at the old
+  `$15/$75` Opus-4.1 rate, a 3× overestimate. The pattern is now `opus-(4-(5|6|7|8)|5)`,
+  routing Opus 5 to the `$5/$25` tier. Rate table re-synced against
+  [claude.com/pricing](https://claude.com/pricing) (last synced 2026-07-28); all other
+  current models were already correct.
+
+### Added
+- **Golden coverage for Opus 5.** `agent-spend-opus5` prices a 1M-in + 1M-out Opus 5
+  subagent to exactly `~$30.00`, asserting the `$5/$25` rate is applied and not shadowed
+  by the `$15/$75` opus fallback (which would render `~$90.00`).
+
+[1.3.0]: https://github.com/ClearMountainDigital/mountainlabs-statusline/releases/tag/v1.3.0
+
 ## [1.2.1] — 2026-07-02
 
 Test-only release — no change to the rendered output. Locks in Fable 5 / Mythos 5

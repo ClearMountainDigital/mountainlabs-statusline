@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================================
-# MountainLabs — Claude Code statusline          v1.2.1 · MIT · MountainLabs.ai
+# MountainLabs — Claude Code statusline          v1.3.0 · MIT · MountainLabs.ai
 # https://github.com/ClearMountainDigital/mountainlabs-statusline
 #
 # A two-line live dashboard rendered above the Claude Code prompt:
@@ -162,7 +162,7 @@ _stat_ms(){ stat -f '%m %z' "$@" 2>/dev/null || stat -c '%Y %s' "$@" 2>/dev/null
 # Rates below are per-MTok base input / output; cache is a multiple of base input
 # (5m write ×1.25, 1h write ×2, read ×0.1). This `rates()` table is the single
 # source of pricing — no other copy exists. Sync it with https://claude.com/pricing
-# when rates change and bump the date. Last synced: 2026-07-01.
+# when rates change and bump the date. Last synced: 2026-07-28.
 # Parsing is gated by a cheap file signature + on-disk cache so a busy session
 # doesn't re-parse every render — steady state is one stat() per file.
 agent_spend(){ # $1 subagents dir  $2 cache file
@@ -187,7 +187,7 @@ agent_spend(){ # $1 subagents dir  $2 cache file
         if(mo ~ /haiku-3/){bi=0.8;bo=4}
         else if(mo ~ /haiku/){bi=1;bo=5}
         else if(mo ~ /fable|mythos/){bi=10;bo=50}
-        else if(mo ~ /opus-4-(5|6|7|8)/){bi=5;bo=25}
+        else if(mo ~ /opus-(4-(5|6|7|8)|5)/){bi=5;bo=25}  # Opus 4.5-4.8 + Opus 5
         else if(mo ~ /opus/){bi=15;bo=75}          # Opus 4.1 and earlier
         else if(mo ~ /sonnet-5/){bi=2;bo=10}       # intro pricing thru 2026-08-31
         else if(mo ~ /sonnet/){bi=3;bo=15}

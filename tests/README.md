@@ -76,6 +76,7 @@ default on essentially every git build.
 | `context-dumb-zone` | 620k/1.0M — token gradient warmed into the "dumb zone" |
 | `agent-spend` | Subagent transcript → `agt N·~$X (Y%)` segment |
 | `agent-spend-fable` | Fable 5 subagent (1M in + 1M out) → `~$60.00`; locks the `fable\|mythos` rate ($10/$50 per MTok) |
+| `agent-spend-opus5` | Opus 5 subagent (1M in + 1M out) → `~$30.00`; locks the Opus 5 rate ($5/$25 per MTok), guarding that `claude-opus-5` routes to the $5/$25 tier and not the $15/$75 opus fallback |
 | `git-clean` | Clean repo → `✓` |
 | `git-dirty` | `↑1 ↓2 +1 ✎1 …1` (ahead/behind + staged/modified/untracked) |
 | `git-detached` | Detached HEAD → short SHA |

@@ -192,6 +192,19 @@ mk_agent_transcript_fable(){
   echo "$base"
 }
 
+mk_agent_transcript_opus5(){
+  # Locks the Opus 5 rate ($5 in / $25 out per MTok). One assistant line at 1M in
+  # + 1M out prices to exactly $5 + $25 = $30.00. Opus 5's ID (claude-opus-5) is
+  # NOT matched by the opus-4-(5|6|7|8) branch, so this guards that agent_spend
+  # routes it to the $5/$25 tier and not the $15/$75 opus fallback (which would
+  # render ~$90.00).
+  local base="$TMPROOT/agent-spend-opus5/session.jsonl"
+  local sub="$TMPROOT/agent-spend-opus5/session/subagents"
+  mkdir -p "$sub"
+  printf '%s\n' '{"type":"assistant","message":{"model":"claude-opus-5","usage":{"input_tokens":1000000,"output_tokens":1000000}}}' > "$sub/agent-1.jsonl"
+  echo "$base"
+}
+
 # ---- payload assembly ------------------------------------------------------
 build_payload(){  # $1 fixture name -> final JSON on stdout
   local name="$1" base ws tp
@@ -212,6 +225,11 @@ build_payload(){  # $1 fixture name -> final JSON on stdout
     agent-spend-fable)
         ws="$TMPROOT/agent-spend-fable"; mkdir -p "$ws"
         tp="$(mk_agent_transcript_fable)"
+        base="$(printf '%s' "$base" | jq --arg tp "$tp" '.transcript_path=$tp')"
+        ;;
+    agent-spend-opus5)
+        ws="$TMPROOT/agent-spend-opus5"; mkdir -p "$ws"
+        tp="$(mk_agent_transcript_opus5)"
         base="$(printf '%s' "$base" | jq --arg tp "$tp" '.transcript_path=$tp')"
         ;;
     *)             ws="$TMPROOT/$name"; mkdir -p "$ws" ;;
